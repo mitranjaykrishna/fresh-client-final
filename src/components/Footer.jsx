@@ -13,7 +13,7 @@ export default function Footer() {
   return (
     <footer className="bg-primary text-black text-sm animate-fadeIn">
       {/* Top policies row */}
-      <div className="grid grid-cols-2 sm:grid-cols-6 gap-4 text-center border-b border-gray-300 py-5 px-4">
+      {/* <div className="grid grid-cols-2 sm:grid-cols-6 gap-4 text-center border-b border-gray-300 py-5 px-4">
         {[
           { icon: "📄", label: "Terms & Conditions", link: "/terms#terms" },
           { icon: "👥", label: "About Us", link: "/terms#about" },
@@ -33,14 +33,14 @@ export default function Footer() {
             <span className="text-sm font-medium">{item.label}</span>
           </a>
         ))}
-      </div>
+      </div> */}
 
       {/* Middle content */}
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 py-8 px-4 sm:px-8 animate-fadeUp">
         {/* Column 1: Logo + Subscribe + App links */}
-        <div>
-          <h2 className="text-xl font-bold mb-3">Freshooter</h2>
-          <div className="flex flex-col sm:flex-row mb-4 animate-fadeIn">
+        <div className=" flex flex-col items-center ">
+          <h2 className="text-4xl font-bold mb-3">Freshooter</h2>
+          {/* <div className="flex flex-col sm:flex-row mb-4 animate-fadeIn">
             <input
               type="email"
               placeholder="Your Email Address"
@@ -61,7 +61,7 @@ export default function Footer() {
               alt="App Store"
               className="h-10 transition-transform duration-300 hover:scale-105"
             />
-          </div>
+          </div> */}
         </div>
 
         {/* Column 2: Contact Info */}
