@@ -27,7 +27,6 @@ export default function Orders() {
   const [returnMessage, setReturnMessage] = useState("");
   const [returnOrderSelected, setReturnOrderSelected] = useState(null);
   const [isReturning, setIsReturning] = useState(false);
-
   const getOrders = async () => {
     setLoading(true);
     try {
@@ -138,10 +137,8 @@ export default function Orders() {
         orderItems.map(async (item) => {
           // 1. Add to cart
           await services.post(
-            `${StaticApi.addToCart}?productCode=${item.productCode}&quantity=${
-              item.quantity || 1
-            }&weightValue=${item.variantWeightValue}&weightUnit=${
-              item.variantWeightUnit
+            `${StaticApi.addToCart}?productCode=${item.productCode}&quantity=${item.quantity || 1
+            }&weightValue=${item.variantWeightValue}&weightUnit=${item.variantWeightUnit
             }`
           );
 
@@ -366,43 +363,43 @@ export default function Orders() {
                 </div>
                 <div className="text-sm text-right">
                   <span className="block">
-                    <strong>ORDER #</strong> {order.orderId}
+                    <strong>ORDER #</strong> {order?.publicOrderId}
                   </span>
                   <div className="mt-1">
-                    {getStatusBadge(order.orderStatus)}
+                    {getStatusBadge(order?.orderStatus)}
                   </div>
                 </div>
               </div>
 
               {/* Order Status */}
               <div className="mt-4 text-sm">
-                {order.orderStatus === "Delivered" && (
+                {order?.orderStatus === "Delivered" && (
                   <>
                     <p className="text-green-600 font-semibold">
-                      Delivered on {order.deliveryDate}
+                      Delivered on {order?.deliveryDate}
                     </p>
                     <p className="text-gray-600">
                       Your item has been delivered
                     </p>
                   </>
                 )}
-                {order.orderStatus === "Cancelled" && (
+                {order?.orderStatus === "Cancelled" && (
                   <p className="text-red-600 font-semibold">
                     Order was cancelled
                   </p>
                 )}
                 {["Processing", "Shipped", "Out for Delivery"].includes(
-                  order.orderStatus
+                  order?.orderStatus
                 ) && (
-                  <p className="text-blue-600 font-semibold">
-                    {order.orderStatus === "Processing" &&
-                      "Your order is being prepared"}
-                    {order.orderStatus === "Shipped" &&
-                      "Your order has been shipped"}
-                    {order.orderStatus === "Out for Delivery" &&
-                      "Your order is out for delivery"}
-                  </p>
-                )}
+                    <p className="text-blue-600 font-semibold">
+                      {order?.orderStatus === "Processing" &&
+                        "Your order is being prepared"}
+                      {order?.orderStatus === "Shipped" &&
+                        "Your order has been shipped"}
+                      {order?.orderStatus === "Out for Delivery" &&
+                        "Your order is out for delivery"}
+                    </p>
+                  )}
               </div>
 
               {/* Product Info */}
@@ -418,26 +415,26 @@ export default function Orders() {
                   />
                   <div className="flex-1">
                     <p className="font-medium text-sm text-primary">
-                      {item.productName}
+                      {item?.productName}
                     </p>
                     <p className="text-sm text-gray-500 mt-1">
-                      Qty: {item.quantity}
+                      Qty: {item?.quantity}
                     </p>
                     <p className="text-sm text-gray-500 mt-1">
                       Price:{" "}
-                      {formatCurrency(item.afterDiscountAmount / item.quantity)}{" "}
+                      {formatCurrency(item?.afterDiscountAmount / item?.quantity)}{" "}
                       each
                     </p>
                     <p className="text-sm text-gray-500 mt-1">
-                      Weight: {item.variantWeightValue} {item.variantWeightUnit}
+                      Weight: {item?.variantWeightValue} {item?.variantWeightUnit}
                     </p>
-                    {order.orderStatus === "Delivered" && (
+                    {order?.orderStatus === "Delivered" && (
                       <p className="text-xs text-gray-400 mt-1">
                         Return window closes on{" "}
-                        {/* {order.deliveryDate
-                          ? new Date(order.deliveryDate)
+                        {/* {order?.deliveryDate
+                          ? new Date(order?.deliveryDate)
                               .setDate(
-                                new Date(order.deliveryDate).getDate() + 7
+                                new Date(order?.deliveryDate).getDate() + 7
                               )
                               ?.toLocaleDateString()
                           : "N/A"} */}
@@ -445,7 +442,7 @@ export default function Orders() {
                     )}
                   </div>
                   <div className="text-sm font-semibold text-green-700">
-                    {formatCurrency(item.afterDiscountAmount)}
+                    {formatCurrency(item?.afterDiscountAmount)}
                   </div>
                 </div>
               ))}
@@ -453,18 +450,18 @@ export default function Orders() {
               {/* Action Buttons */}
               <div className="flex flex-wrap gap-3 mt-4">
                 <div
-                  onClick={() => trackOrder(order.orderId)}
+                  onClick={() => trackOrder(order?.orderId)}
                   className="bg-[#4296879a] text-black font-medium py-[10px] px-[10px] cursor-pointer flex items-center justify-center rounded-md text-sm hover:bg-yellow-300 max-h"
                 >
                   Trach Order
                 </div>
                 <div
-                  onClick={() => buyNow(order.orderItems)}
+                  onClick={() => buyNow(order?.orderItems)}
                   className="bg-[#4296879a] text-black font-medium py-[10px] px-[10px] cursor-pointer flex items-center justify-center rounded-md text-sm hover:bg-yellow-300 max-h"
                 >
                   Buy Again
                 </div>
-                {order.orderStatus === "Delivered" && (
+                {order?.orderStatus === "Delivered" && (
                   <>
                     <div
                       onClick={() => navigate(StaticRoutes.terms)}
@@ -619,9 +616,8 @@ export default function Orders() {
               </button>
               <button
                 onClick={handleCancelOrder}
-                className={`px-4 py-2 rounded-md text-white ${
-                  isCancelling ? "bg-red-400" : "bg-red-500 hover:bg-red-600"
-                }`}
+                className={`px-4 py-2 rounded-md text-white ${isCancelling ? "bg-red-400" : "bg-red-500 hover:bg-red-600"
+                  }`}
                 disabled={isCancelling}
               >
                 {isCancelling ? "Cancelling..." : "Confirm Cancellation"}
