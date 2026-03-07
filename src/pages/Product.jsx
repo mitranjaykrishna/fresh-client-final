@@ -149,7 +149,7 @@ export default function Product() {
           await getUserCart(product);
           if (goToCheckout) navigate("/checkout");
         })
-        .catch(() => {})
+        .catch(() => { })
         .finally(() => setLoading(false));
     } else if (!goToCheckout) {
       // Remove this exact variant
@@ -163,7 +163,7 @@ export default function Product() {
           setIsInCart(false);
           await getUserCart(product);
         })
-        .catch(() => {})
+        .catch(() => { })
         .finally(() => setLoading(false));
     } else if (isVariantInCart && goToCheckout) {
       navigate("/checkout");
@@ -189,7 +189,7 @@ export default function Product() {
         .then(() => {
           setIsWishlisted(true);
         })
-        .catch(() => {})
+        .catch(() => { })
         .finally(() => setLoading(false));
     } else {
       services
@@ -199,7 +199,7 @@ export default function Product() {
         .then(() => {
           setIsWishlisted(false);
         })
-        .catch(() => {})
+        .catch(() => { })
         .finally(() => setLoading(false));
     }
   };
@@ -211,8 +211,8 @@ export default function Product() {
       const cartItems = Array.isArray(res?.data?.items)
         ? res.data.items
         : Array.isArray(res?.data)
-        ? res.data
-        : [];
+          ? res.data
+          : [];
 
       setCartData(cartItems);
 
@@ -220,14 +220,14 @@ export default function Product() {
       const isPresent = cartItems.some(
         (item) =>
           item.productCode ===
-            (selectedVariant?.productCode || data?.productCode || id) &&
+          (selectedVariant?.productCode || data?.productCode || id) &&
           item.variantWeightValue === selectedVariant?.weightValue &&
           item.variantWeightUnit === selectedVariant?.weightUnit
       );
 
       setIsInCart(isPresent);
       cartEvents.refresh();
-    } catch (error) {}
+    } catch (error) { }
   };
 
   const checkIfWishlisted = async () => {
@@ -417,9 +417,8 @@ export default function Product() {
               {normalizedImages.map((img, index) => (
                 <div
                   key={index}
-                  className={`w-[75px] h-[80px] cursor-pointer ${
-                    selectedImage === index ? "ring-2 ring-primary" : ""
-                  }`}
+                  className={`w-[75px] h-[80px] cursor-pointer ${selectedImage === index ? "ring-2 ring-primary" : ""
+                    }`}
                   onClick={() => setSelectedImage(index)}
                 >
                   <img
@@ -497,20 +496,20 @@ export default function Product() {
             </div>
             {product?.reviews?.length
               ? reviews.map((review, index) => (
-                  <div
-                    key={index}
-                    className="p-4 border border-quaternary rounded-lg bg-white"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-yellow-500">
-                        {"⭐".repeat(review.rating)}
-                      </span>
-                      <span className="text-sm text-gray-600">
-                        {review.userName}
-                      </span>
-                    </div>
+                <div
+                  key={index}
+                  className="p-4 border border-quaternary rounded-lg bg-white"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-yellow-500">
+                      {"⭐".repeat(review.rating)}
+                    </span>
+                    <span className="text-sm text-gray-600">
+                      {review.userName}
+                    </span>
                   </div>
-                ))
+                </div>
+              ))
               : null}
           </div>
 
@@ -520,11 +519,10 @@ export default function Product() {
               {product.productVariantBeans.map((variant) => (
                 <button
                   key={variant.variantId}
-                  className={`px-3 py-1 rounded-lg border ${
-                    selectedVariant?.variantId === variant.variantId
+                  className={`px-3 py-1 rounded-lg border ${selectedVariant?.variantId === variant.variantId
                       ? "border-primary bg-primary text-white"
                       : "border-gray-300 bg-white text-gray-700"
-                  }`}
+                    }`}
                   onClick={() => setSelectedVariant(variant)}
                 >
                   {variant.weightValue} {variant.weightUnit}
@@ -555,11 +553,10 @@ export default function Product() {
           {/* quantity increase and decrease*/}
           <div className="inline-flex items-center border border-gray-300 rounded-full overflow-hidden shadow-sm w-max">
             <button
-              className={`px-4 py-1 text-lg font-semibold transition-all ${
-                quantity <= 1
+              className={`px-4 py-1 text-lg font-semibold transition-all ${quantity <= 1
                   ? "text-gray-400 bg-gray-100 cursor-not-allowed"
                   : "text-primary hover:bg-gray-200"
-              }`}
+                }`}
               onClick={() => handleQuantityChange(-1)}
               disabled={quantity <= 1}
             >
@@ -571,11 +568,10 @@ export default function Product() {
             </span>
 
             <button
-              className={`px-4 py-1 text-lg font-semibold transition-all ${
-                quantity >= product?.stockQuantity
+              className={`px-4 py-1 text-lg font-semibold transition-all ${quantity >= product?.stockQuantity
                   ? "text-gray-400 bg-gray-100 cursor-not-allowed"
                   : "text-primary hover:bg-gray-200"
-              }`}
+                }`}
               onClick={() => handleQuantityChange(1)}
               disabled={
                 quantity >=
@@ -596,11 +592,10 @@ export default function Product() {
 
           <div className="flex items-center gap-3">
             <button
-              className={`${
-                product?.stockQuantity <= 0
+              className={`${product?.stockQuantity <= 0
                   ? "bg-gray-300 cursor-not-allowed"
                   : "bg-primary hover:bg-secondary"
-              } text-white px-4 py-2 rounded-lg transition-colors h-[42px] flex items-center`}
+                } text-white px-4 py-2 rounded-lg transition-colors h-[42px] flex items-center`}
               // disabled={product?.stockQuantity <= 0}
               onClick={() => handleCart(false)}
             >
@@ -616,11 +611,10 @@ export default function Product() {
 
             {/* Buy Now – now looks SECONDARY */}
             <button
-              className={`px-4 py-2 rounded-lg transition-colors h-[42px] border flex items-center ${
-                product?.stockQuantity <= 0
+              className={`px-4 py-2 rounded-lg transition-colors h-[42px] border flex items-center ${product?.stockQuantity <= 0
                   ? "bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed"
                   : "bg-white text-primary border-primary hover:bg-primary hover:text-white"
-              }`}
+                }`}
               // disabled={product?.stockQuantity <= 0}
               onClick={buyNow}
             >
@@ -628,9 +622,8 @@ export default function Product() {
             </button>
 
             <div
-              className={`text-red-500 cursor-pointer text-2xl transition-transform ${
-                wishlistAnimation ? "wishlist-bounce" : ""
-              }`}
+              className={`text-red-500 cursor-pointer text-2xl transition-transform ${wishlistAnimation ? "wishlist-bounce" : ""
+                }`}
               onClick={toggleWishlist}
             >
               {isWishlisted ? <FaHeart /> : <FaRegHeart />}
@@ -643,6 +636,18 @@ export default function Product() {
         {/* Vertical divider - hidden on mobile */}
         <div className="hidden lg:block flex-grow w-[1px] bg-quaternary"></div>
 
+
+
+        {/* Main content area */}
+        <div className="w-full h-full px-4 py-5 lg:px-5 lg:pb-6 flex flex-col gap-4 lg:gap-5">
+          {/* Related Products Carousel */}
+          <div className="overflow-x-hidden">
+            <FeatureCarousel
+              heading="Related Products"
+              data={relatedProducts}
+            />
+          </div>
+        </div>
         {/* Customer Reviews */}
         <div className="w-full h-full flex flex-col gap-4 lg:gap-5 px-4 py-5">
           <h2 className="text-lg lg:text-xl font-semibold">
@@ -662,10 +667,10 @@ export default function Product() {
                 {visibleReviews.map((review, index) => {
                   const initials = review.userName
                     ? review.userName
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")
-                        .slice(0, 2)
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .slice(0, 2)
                     : "U";
 
                   return (
@@ -711,17 +716,6 @@ export default function Product() {
               )}
             </>
           )}
-        </div>
-
-        {/* Main content area */}
-        <div className="w-full h-full px-4 py-5 lg:px-5 lg:pb-6 flex flex-col gap-4 lg:gap-5">
-          {/* Related Products Carousel */}
-          <div className="overflow-x-hidden">
-            <FeatureCarousel
-              heading="Related Products"
-              data={relatedProducts}
-            />
-          </div>
         </div>
       </div>
     </div>
