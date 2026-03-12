@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router";
 import "swiper/css";
 import "swiper/css/navigation";
-import { Autoplay } from "swiper/modules";
+import { Autoplay, Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 
 export default function FeatureCarousel({ heading, data }) {
@@ -20,7 +20,8 @@ export default function FeatureCarousel({ heading, data }) {
 
         {/* Swiper Carousel */}
         <Swiper
-          modules={[Autoplay]}
+          modules={[Autoplay, Navigation]}
+          navigation={true}
           autoplay={{
             delay: 1000,
             disableOnInteraction: false,
@@ -68,8 +69,8 @@ export default function FeatureCarousel({ heading, data }) {
                       {heading === "New Products"
                         ? "New"
                         : heading === "Featured Products"
-                        ? "Featured"
-                        : "Best Seller"}
+                          ? "Featured"
+                          : "Best Seller"}
                     </span>
                   </div>
 
