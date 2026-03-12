@@ -67,6 +67,8 @@ export default function Header() {
 
   const handleLogout = () => {
     localStorage.clear();
+    setIsProfileMenuOpen(false);
+    setIsMobileMenuOpen(false);
     navigate("/");
   };
   const getCartItems = () => {
@@ -76,7 +78,7 @@ export default function Header() {
         const data = res?.data?.items?.length || 0;
         setCartLength(data);
       })
-      .catch(() => {});
+      .catch(() => { });
   };
 
   useEffect(() => {
@@ -129,12 +131,9 @@ export default function Header() {
           </div>
 
           {/* Desktop Search & Icons */}
-          <div
-            className="hidden md:flex items-center space-x-4 ml-auto relative"
-            ref={searchRef}
-          >
+          <div className="hidden md:flex items-center space-x-4 ml-auto relative">
             {/* Search Bar */}
-            <div className="w-[26rem] relative">
+            <div className="w-[26rem] relative" ref={searchRef}>
               <input
                 value={searchTerm}
                 onChange={handleSearchInput}
@@ -200,74 +199,71 @@ export default function Header() {
             </div>
 
             {/* User Initial & Welcome */}
-            {localStorage.getItem("userName") ? (
-              <div
-                className="flex items-center gap-3 cursor-pointer"
-                onClick={handleProfileToggle}
-                ref={isProfileRef}
-              >
-                <div className="bg-[#ff9933] text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">
-                  {localStorage.getItem("userName").charAt(0).toUpperCase()}
+            <div className="relative" ref={isProfileRef}>
+              {localStorage.getItem("userName") ? (
+                <div
+                  className="flex items-center gap-3 cursor-pointer"
+                  onClick={handleProfileToggle}
+                >
+                  <div className="bg-[#ff9933] text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">
+                    {localStorage.getItem("userName").charAt(0).toUpperCase()}
+                  </div>
+                  {/* <span className="hidden sm:block text-sm font-medium">
+                    Welcome, {localStorage.getItem("userName").split(" ")[0]}
+                  </span> */}
                 </div>
-                {/* <span className="hidden sm:block text-sm font-medium">
-                  Welcome, {localStorage.getItem("userName").split(" ")[0]}
-                </span> */}
-              </div>
-            ) : (
-              // If not logged in, show profile icon with dropdown
-              <div className="relative" ref={isProfileRef}>
+              ) : (
+                // If not logged in, show profile icon with dropdown
                 <button
-                  className="text-white text-2xl hover:text-secondary"
+                  className="text-white text-2xl hover:text-secondary flex items-center"
                   onClick={handleProfileToggle}
                 >
                   <AiOutlineUser />
                 </button>
-              </div>
-            )}
+              )}
 
-            {isProfileMenuOpen && (
-              <div
-                ref={isProfileRef}
-                className="absolute right-0 mt-2 w-40 bg-white text-black rounded shadow-lg z-50 top-[30px]"
-              >
-                {localStorage.getItem("token") && (
-                  <>
-                    <button
-                      className="w-full text-left px-4 py-2 hover:bg-gray-100"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleProfileNavigate(StaticRoutes.profile);
-                      }}
-                    >
-                      Profile
-                    </button>
+              {isProfileMenuOpen && (
+                <div className="absolute right-0 mt-2 w-40 bg-white text-black rounded shadow-lg z-50 top-[30px]">
+                  {localStorage.getItem("token") && (
+                    <>
+                      <button
+                        className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleProfileNavigate(StaticRoutes.profile);
+                        }}
+                      >
+                        Profile
+                      </button>
 
-                    <button
-                      className="w-full text-left px-4 py-2 hover:bg-gray-100"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleProfileNavigate(StaticRoutes.orders);
-                      }}
-                    >
-                      Orders
-                    </button>
-                  </>
-                )}
+                      <button
+                        className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleProfileNavigate(StaticRoutes.orders);
+                        }}
+                      >
+                        Orders
+                      </button>
+                    </>
+                  )}
 
-                <button
-                  className="w-full text-left px-4 py-2 hover:bg-gray-100"
-                  onClick={
-                    localStorage.getItem("token")
-                      ? handleLogout
-                      : () => {
+                  <button
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                    onClick={
+                      localStorage.getItem("token")
+                        ? handleLogout
+                        : () => {
                           navigate(StaticRoutes.signin);
+                          setIsProfileMenuOpen(false);
                         }
-                  }
-                >
-                  {localStorage.getItem("token") ? "Logout" : "LogIn"}
-                </button>
-              </div>
-            )}
+                    }
+                  >
+                    {localStorage.getItem("token") ? "Logout" : "LogIn"}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Mobile Menu Toggle */}
@@ -304,33 +300,40 @@ export default function Header() {
           >
             <AiOutlineShoppingCart />
           </button>
+          {localStorage.getItem("token") && (
+            <>
+              <button
+                onClick={() => {
+                  navigate(StaticRoutes.profile);
+                  setIsMobileMenuOpen(false);
+                }}
+                className="text-2xl block"
+              >
+                <AiOutlineUser />
+              </button>
+              <button
+                onClick={() => {
+                  navigate(StaticRoutes.orders);
+                  setIsMobileMenuOpen(false);
+                }}
+                className="hover:underline text-sm block"
+              >
+                Orders
+              </button>
+            </>
+          )}
           <button
-            onClick={() => {
-              navigate(StaticRoutes.profile);
-              setIsMobileMenuOpen(false);
-            }}
-            className="text-2xl block"
-          >
-            <AiOutlineUser />
-          </button>
-          <button
-            onClick={() => {
-              navigate(StaticRoutes.orders);
-              setIsMobileMenuOpen(false);
-            }}
+            onClick={
+              localStorage.getItem("token")
+                ? handleLogout
+                : () => {
+                  navigate(StaticRoutes.signin);
+                  setIsMobileMenuOpen(false);
+                }
+            }
             className="hover:underline text-sm block"
           >
-            Orders
-          </button>
-          <button
-            onClick={() => {
-              navigate("/signin");
-              setIsMobileMenuOpen(false);
-              localStorage.clear();
-            }}
-            className="hover:underline text-sm block"
-          >
-            Logout
+            {localStorage.getItem("token") ? "Logout" : "LogIn"}
           </button>
         </div>
       )}

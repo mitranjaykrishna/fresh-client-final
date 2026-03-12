@@ -266,7 +266,7 @@ export default function Product() {
     }
 
     // 3. Fallback
-    return "";
+    return [];
   }, [selectedVariant, product]);
 
   useEffect(() => {
@@ -432,13 +432,11 @@ export default function Product() {
             {/* Mobile Carousel (hidden on desktop) */}
             <div className="md:hidden w-full">
               <Swiper
-                onSwiper={setThumbsSwiper}
                 spaceBetween={10}
                 slidesPerView={1}
-                freeMode={true}
-                watchSlidesProgress={true}
+                thumbs={{ swiper: thumbsSwiper && !thumbsSwiper.destroyed ? thumbsSwiper : null }}
                 modules={[FreeMode, Thumbs]}
-                className="thumb-swiper mt-2"
+                className="main-swiper mt-2"
               >
                 {normalizedImages.map((img, index) => (
                   <SwiperSlide key={index}>
@@ -473,7 +471,7 @@ export default function Product() {
             {/* Desktop Main Image (hidden on mobile) */}
             <div className="flex-1 hidden md:block">
               <img
-                src={product?.productImages?.url}
+                src={normalizedImages[selectedImage] || product?.productImages?.url}
                 alt={product?.name}
                 className="w-full max-h-[600px] object-cover rounded-lg"
               />
@@ -520,8 +518,8 @@ export default function Product() {
                 <button
                   key={variant.variantId}
                   className={`px-3 py-1 rounded-lg border ${selectedVariant?.variantId === variant.variantId
-                      ? "border-primary bg-primary text-white"
-                      : "border-gray-300 bg-white text-gray-700"
+                    ? "border-primary bg-primary text-white"
+                    : "border-gray-300 bg-white text-gray-700"
                     }`}
                   onClick={() => setSelectedVariant(variant)}
                 >
@@ -554,8 +552,8 @@ export default function Product() {
           <div className="inline-flex items-center border border-gray-300 rounded-full overflow-hidden shadow-sm w-max">
             <button
               className={`px-4 py-1 text-lg font-semibold transition-all ${quantity <= 1
-                  ? "text-gray-400 bg-gray-100 cursor-not-allowed"
-                  : "text-primary hover:bg-gray-200"
+                ? "text-gray-400 bg-gray-100 cursor-not-allowed"
+                : "text-primary hover:bg-gray-200"
                 }`}
               onClick={() => handleQuantityChange(-1)}
               disabled={quantity <= 1}
@@ -569,8 +567,8 @@ export default function Product() {
 
             <button
               className={`px-4 py-1 text-lg font-semibold transition-all ${quantity >= product?.stockQuantity
-                  ? "text-gray-400 bg-gray-100 cursor-not-allowed"
-                  : "text-primary hover:bg-gray-200"
+                ? "text-gray-400 bg-gray-100 cursor-not-allowed"
+                : "text-primary hover:bg-gray-200"
                 }`}
               onClick={() => handleQuantityChange(1)}
               disabled={
@@ -593,8 +591,8 @@ export default function Product() {
           <div className="flex items-center gap-3">
             <button
               className={`${product?.stockQuantity <= 0
-                  ? "bg-gray-300 cursor-not-allowed"
-                  : "bg-primary hover:bg-secondary"
+                ? "bg-gray-300 cursor-not-allowed"
+                : "bg-primary hover:bg-secondary"
                 } text-white px-4 py-2 rounded-lg transition-colors h-[42px] flex items-center`}
               // disabled={product?.stockQuantity <= 0}
               onClick={() => handleCart(false)}
@@ -612,8 +610,8 @@ export default function Product() {
             {/* Buy Now – now looks SECONDARY */}
             <button
               className={`px-4 py-2 rounded-lg transition-colors h-[42px] border flex items-center ${product?.stockQuantity <= 0
-                  ? "bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed"
-                  : "bg-white text-primary border-primary hover:bg-primary hover:text-white"
+                ? "bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed"
+                : "bg-white text-primary border-primary hover:bg-primary hover:text-white"
                 }`}
               // disabled={product?.stockQuantity <= 0}
               onClick={buyNow}
