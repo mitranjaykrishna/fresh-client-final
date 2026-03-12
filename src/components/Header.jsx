@@ -11,15 +11,20 @@ import { useLocation, useNavigate } from "react-router";
 import { StaticRoutes } from "../utils/StaticRoutes";
 import { services } from "../utils/services";
 import { StaticApi } from "../utils/StaticApi";
-import { cartEvents } from "../utils/commonFunctions";
+import { useSelector, useDispatch } from "react-redux";
+import { logout } from "../redux/slices/authSlice";
+import { fetchCartItems } from "../redux/slices/cartSlice";
 
 export default function Header() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const searchRef = useRef(null);
   const isProfileRef = useRef(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-  const [cartLength, setCartLength] = useState(false);
+
+  const { isLoggedIn, userName } = useSelector((state) => state.auth);
+  const { cartLength } = useSelector((state) => state.cart);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -66,19 +71,10 @@ export default function Header() {
   }, [searchTerm]);
 
   const handleLogout = () => {
-    localStorage.clear();
+    dispatch(logout());
     setIsProfileMenuOpen(false);
     setIsMobileMenuOpen(false);
     navigate("/");
-  };
-  const getCartItems = () => {
-    services
-      .get(`${StaticApi.getUserCart}`)
-      .then((res) => {
-        const data = res?.data?.items?.length || 0;
-        setCartLength(data);
-      })
-      .catch(() => { });
   };
 
   useEffect(() => {
@@ -105,15 +101,10 @@ export default function Header() {
   }, []);
 
   useEffect(() => {
-    const updateCart = () => getCartItems();
-
-    document.addEventListener("cartUpdated", updateCart);
-    cartEvents.refresh();
-
-    return () => {
-      document.removeEventListener("cartUpdated", updateCart);
-    };
-  }, []);
+    if (isLoggedIn) {
+      dispatch(fetchCartItems());
+    }
+  }, [dispatch, isLoggedIn]);
   return (
     <>
       {/* Header */}
@@ -200,13 +191,13 @@ export default function Header() {
 
             {/* User Initial & Welcome */}
             <div className="relative" ref={isProfileRef}>
-              {localStorage.getItem("userName") ? (
+              {isLoggedIn && userName ? (
                 <div
                   className="flex items-center gap-3 cursor-pointer"
                   onClick={handleProfileToggle}
                 >
                   <div className="bg-[#ff9933] text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">
-                    {localStorage.getItem("userName").charAt(0).toUpperCase()}
+                    {userName.charAt(0).toUpperCase()}
                   </div>
                   {/* <span className="hidden sm:block text-sm font-medium">
                     Welcome, {localStorage.getItem("userName").split(" ")[0]}
@@ -224,7 +215,7 @@ export default function Header() {
 
               {isProfileMenuOpen && (
                 <div className="absolute right-0 mt-2 w-40 bg-white text-black rounded shadow-lg z-50 top-[30px]">
-                  {localStorage.getItem("token") && (
+                  {isLoggedIn && (
                     <>
                       <button
                         className="w-full text-left px-4 py-2 hover:bg-gray-100"
@@ -251,7 +242,7 @@ export default function Header() {
                   <button
                     className="w-full text-left px-4 py-2 hover:bg-gray-100"
                     onClick={
-                      localStorage.getItem("token")
+                      isLoggedIn
                         ? handleLogout
                         : () => {
                           navigate(StaticRoutes.signin);
@@ -259,7 +250,7 @@ export default function Header() {
                         }
                     }
                   >
-                    {localStorage.getItem("token") ? "Logout" : "LogIn"}
+                    {isLoggedIn ? "Logout" : "LogIn"}
                   </button>
                 </div>
               )}
@@ -300,7 +291,7 @@ export default function Header() {
           >
             <AiOutlineShoppingCart />
           </button>
-          {localStorage.getItem("token") && (
+          {isLoggedIn && (
             <>
               <button
                 onClick={() => {
@@ -324,7 +315,7 @@ export default function Header() {
           )}
           <button
             onClick={
-              localStorage.getItem("token")
+              isLoggedIn
                 ? handleLogout
                 : () => {
                   navigate(StaticRoutes.signin);
@@ -333,7 +324,7 @@ export default function Header() {
             }
             className="hover:underline text-sm block"
           >
-            {localStorage.getItem("token") ? "Logout" : "LogIn"}
+            {isLoggedIn ? "Logout" : "LogIn"}
           </button>
         </div>
       )}

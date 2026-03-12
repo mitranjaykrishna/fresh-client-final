@@ -9,15 +9,18 @@ import { toast } from "react-toastify";
 import { Trash2 } from "lucide-react";
 import { useNavigate } from "react-router";
 import { StaticRoutes } from "../utils/StaticRoutes";
-import { cartEvents } from "../utils/commonFunctions";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchCartItems } from "../redux/slices/cartSlice";
 
 export default function Wishlist() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [wishlistItems, setWishlistItems] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [cartproductCodes, setCartproductCodes] = useState([]);
-  const [cartItems, setCartItems] = useState([]);
-  const isLoggedIn = !!localStorage.getItem("token");
+
+  const { isLoggedIn } = useSelector((state) => state.auth);
+  const cartItems = useSelector((state) => state.cart.items) || [];
+  const cartproductCodes = cartItems.map((item) => item.productCode);
 
   const getAllWishlist = async () => {
     setLoading(true);
@@ -46,17 +49,7 @@ export default function Wishlist() {
     }
   };
 
-  const getUserCart = async () => {
-    try {
-      const res = await services.get(`${StaticApi.getUserCart}`);
-      const cartItems = res?.data?.items || [];
-      cartEvents.refresh();
-      setCartproductCodes(cartItems?.map((item) => item.productCode));
-      setCartItems(cartItems);
-    } catch (err) {
-      console.error("Error fetching cart:", err);
-    }
-  };
+
 
   const handleAddToCart = (item, quantity = 1, shouldNavigate) => {
     services
@@ -64,13 +57,12 @@ export default function Wishlist() {
         `${StaticApi.addToCart}?productCode=${item.productCode}&quantity=${quantity}&weightValue=${item.weightValue}&weightUnit=${item.weightUnit}`
       )
       .then(() => {
-        getUserCart();
-        setCartproductCodes((prev) => [...prev, item.productCode]);
+        dispatch(fetchCartItems());
         if (shouldNavigate) {
           navigate(StaticRoutes.checkout);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   };
 
   const handleRemoveFromCart = (productCode) => {
@@ -80,12 +72,9 @@ export default function Wishlist() {
         `${StaticApi.removeProductFromCart}?productCode=${productCode}&weightValue=${item.variantWeightValue}&weightUnit=${item.variantWeightUnit}`
       )
       .then(() => {
-        getUserCart();
-        setCartproductCodes((prev) =>
-          prev.filter((code) => code !== productCode)
-        );
+        dispatch(fetchCartItems());
       })
-      .catch(() => {});
+      .catch(() => { });
   };
 
   const handleBuyNow = async (item) => {
@@ -139,7 +128,7 @@ export default function Wishlist() {
         JSON.stringify([checkoutItem])
       );
 
-      await getUserCart();
+      await dispatch(fetchCartItems());
       navigate(StaticRoutes.checkout);
     } catch (error) {
       console.error(error);
@@ -166,20 +155,25 @@ export default function Wishlist() {
           )
         );
       })
-      .catch(() => {});
+      .catch(() => { });
   };
 
   const totalSummary = wishlistItems.reduce(
-    (sum, item) => sum + (item.price || 0),
+    (sum, item) => {
+      const price = Number(item.price || 0);
+      const discount = Number(item.discount || 0);
+      const discountedPrice = discount > 0 && discount <= 100 ? price - (price * discount) / 100 : price;
+      return sum + discountedPrice;
+    },
     0
   );
 
   useEffect(() => {
     if (isLoggedIn) {
       getAllWishlist();
-      getUserCart();
+      dispatch(fetchCartItems());
     }
-  }, []);
+  }, [isLoggedIn, dispatch]);
 
   return (
     <div className="py-5  sm:px-6 lg:px-10 xl:px-20 2xl:px-[220px]">
@@ -224,81 +218,89 @@ export default function Wishlist() {
             ) : (
               <>
                 <div className="w-full flex flex-col gap-4">
-                  {wishlistItems.map((item) => (
-                    <div
-                      key={item.productCode}
-                      className="flex flex-col sm:flex-row items-stretch border border-quaternary rounded-lg overflow-hidden"
-                    >
-                      {/* Image */}
-                      <div
-                        className="sm:w-[160px] bg-quaternary flex-shrink-0"
-                        onClick={() => {
-                          navigate(`/product/${item.productCode}`);
-                        }}
-                      >
-                        <img
-                          src={item.productImages?.url}
-                          alt={item.name}
-                          className="w-full h-[200px] sm:h-full object-cover"
-                        />
-                      </div>
+                  {wishlistItems.map((item) => {
+                    const price = Number(item?.price || 0);
+                    const discount = Number(item?.discount || 0);
+                    const hasDiscount = price > 0 && discount > 0 && discount <= 100;
+                    const discountedPrice = hasDiscount
+                      ? price - (price * discount) / 100
+                      : price;
 
-                      {/* Details */}
-                      <div className="flex flex-col justify-between p-4 gap-3 flex-1">
+                    return (
+                      <div
+                        key={item.productCode}
+                        className="flex flex-col sm:flex-row items-stretch border border-quaternary rounded-lg overflow-hidden"
+                      >
+                        {/* Image */}
                         <div
+                          className="sm:w-[160px] bg-quaternary flex-shrink-0"
                           onClick={() => {
                             navigate(`/product/${item.productCode}`);
                           }}
                         >
-                          <h3 className=" font-semibold text-base sm:text-lg">
-                            {item.name}
-                          </h3>
+                          <img
+                            src={item.productImages?.url}
+                            alt={item.name}
+                            className="w-full h-[200px] sm:h-full object-cover"
+                          />
+                        </div>
 
-                          <div className="flex items-center gap-2 mt-2">
-                            <span className="text-primary text-lg font-semibold">
-                              ₹{item.price?.toFixed(2)}
-                            </span>
-                            {item.originalPrice &&
-                              item.originalPrice > item.price && (
+                        {/* Details */}
+                        <div className="flex flex-col justify-between p-4 gap-3 flex-1">
+                          <div
+                            onClick={() => {
+                              navigate(`/product/${item.productCode}`);
+                            }}
+                          >
+                            <h3 className=" font-semibold text-base sm:text-lg">
+                              {item.name}
+                            </h3>
+
+                            <div className="flex items-center gap-2 mt-2">
+                              <span className="text-primary text-lg font-semibold">
+                                ₹{discountedPrice.toFixed(2)}
+                              </span>
+                              {hasDiscount && (
                                 <span className="line-through text-sm text-gray-400">
-                                  ₹{item.originalPrice?.toFixed(2)}
+                                  ₹{price.toFixed(2)}
                                 </span>
                               )}
+                            </div>
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex sm:max-w-[50%] w-full gap-2 mt-2">
+                            {cartproductCodes.includes(item.productCode) ? (
+                              <ButtonPrimary
+                                label="Remove from Cart"
+                                handleOnClick={() =>
+                                  handleRemoveFromCart(item.productCode)
+                                }
+                              />
+                            ) : (
+                              <ButtonPrimary
+                                label="Add to Cart"
+                                handleOnClick={() => handleAddToCart(item)}
+                              />
+                            )}
+
+                            <ButtonPrimary
+                              label="Buy Now"
+                              handleOnClick={() => handleBuyNow(item)}
+                            />
+
+                            <button
+                              onClick={() => handleRemoveFromWishlist(item)}
+                              className="p-2 border rounded-md hover:bg-red-50 text-red-500 transition-colors"
+                              title="Remove from Wishlist"
+                            >
+                              <Trash2 className="w-5 h-5" />
+                            </button>
                           </div>
                         </div>
-
-                        {/* Actions */}
-                        <div className="flex sm:max-w-[50%] w-full gap-2 mt-2">
-                          {cartproductCodes.includes(item.productCode) ? (
-                            <ButtonPrimary
-                              label="Remove from Cart"
-                              handleOnClick={() =>
-                                handleRemoveFromCart(item.productCode)
-                              }
-                            />
-                          ) : (
-                            <ButtonPrimary
-                              label="Add to Cart"
-                              handleOnClick={() => handleAddToCart(item)}
-                            />
-                          )}
-
-                          <ButtonPrimary
-                            label="Buy Now"
-                            handleOnClick={() => handleBuyNow(item)}
-                          />
-
-                          <button
-                            onClick={() => handleRemoveFromWishlist(item)}
-                            className="p-2 border rounded-md hover:bg-red-50 text-red-500 transition-colors"
-                            title="Remove from Wishlist"
-                          >
-                            <Trash2 className="w-5 h-5" />
-                          </button>
-                        </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
 
                 {/* Wishlist Summary */}

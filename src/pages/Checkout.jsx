@@ -11,11 +11,13 @@ import { services } from "../utils/services";
 import { StaticRoutes } from "../utils/StaticRoutes";
 import { useNavigate } from "react-router";
 import StateCity from "../utils/StateCity.json";
-import { cartEvents } from "../utils/commonFunctions";
+import { useDispatch } from "react-redux";
+import { fetchCartItems } from "../redux/slices/cartSlice";
 
 // --- Checkout Component ---
 const Checkout = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [selectedPayment, setSelectedPayment] = useState("cod");
   const [showAddAddress, setShowAddAddress] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -94,7 +96,7 @@ const Checkout = () => {
   const getOrders = async () => {
     try {
       await services.get(`${StaticApi.getMyOrders}`);
-    } catch (err) {}
+    } catch (err) { }
   };
 
   const handlePayment = async () => {
@@ -124,21 +126,14 @@ const Checkout = () => {
         state: { orderId: res?.data?.data?.orderId },
       });
 
-      getCartItems();
+      dispatch(fetchCartItems());
       getOrders();
     } catch {
       toast.error("Failed to place order");
     }
   };
 
-  const getCartItems = () => {
-    services
-      .get(`${StaticApi.getUserCart}`)
-      .then((res) => {
-        cartEvents.refresh();
-      })
-      .catch(() => {});
-  };
+
 
   const handleAddAddress = () => {
     const requiredFields = [
@@ -163,9 +158,9 @@ const Checkout = () => {
     const apiCall =
       editIndex !== null
         ? services.put(
-            `${StaticApi.updateAddress}/${newAddress.addressId}`,
-            newAddress
-          )
+          `${StaticApi.updateAddress}/${newAddress.addressId}`,
+          newAddress
+        )
         : services.post(StaticApi.createAddress, newAddress);
 
     apiCall
@@ -192,7 +187,7 @@ const Checkout = () => {
         });
         getAllAddress();
       })
-      .catch(() => {});
+      .catch(() => { });
   };
 
   const handleDeleteAddress = (addressId) => {
@@ -201,7 +196,7 @@ const Checkout = () => {
       .then(() => {
         getAllAddress();
       })
-      .catch(() => {});
+      .catch(() => { });
   };
 
   const handleSetDefaultAddress = (addressId) => {
@@ -210,7 +205,7 @@ const Checkout = () => {
       .then(() => {
         getAllAddress();
       })
-      .catch(() => {});
+      .catch(() => { });
   };
 
   const getAllAddress = () => {
@@ -256,7 +251,7 @@ const Checkout = () => {
         setAddressList(sortedAddresses);
         setSelectedAddress(0); // Always select the top one
       })
-      .catch(() => {});
+      .catch(() => { });
   };
 
   const handleDeleteCheckoutItem = (productId) => {
@@ -405,10 +400,8 @@ const Checkout = () => {
                 );
               } else {
                 services.delete(
-                  `${StaticApi.removeSingleItemCart}?productCode=${
-                    item.productCode
-                  }&quantity=${-change}&weightValue=${
-                    item.variantWeightValue
+                  `${StaticApi.removeSingleItemCart}?productCode=${item.productCode
+                  }&quantity=${-change}&weightValue=${item.variantWeightValue
                   }&weightUnit=${item.variantWeightUnit}`
                 );
               }
@@ -605,9 +598,8 @@ const AddressCard = ({
   onSetDefault,
 }) => (
   <label
-    className={`block border flex justify-between items-start rounded-lg p-4 transition cursor-pointer ${
-      selected ? "border-primary bg-green-50" : "hover:border-primary"
-    }`}
+    className={`block border flex justify-between items-start rounded-lg p-4 transition cursor-pointer ${selected ? "border-primary bg-green-50" : "hover:border-primary"
+      }`}
   >
     <div className="flex items-start gap-3">
       <input
@@ -676,9 +668,8 @@ const AddressCard = ({
 
 const PaymentMethodCard = ({ label, selected, onChange }) => (
   <label
-    className={`block border rounded-lg p-4 cursor-pointer transition ${
-      selected ? "bg-green-50 border-green-400" : ""
-    }`}
+    className={`block border rounded-lg p-4 cursor-pointer transition ${selected ? "bg-green-50 border-green-400" : ""
+      }`}
   >
     <div className="flex items-center">
       <input
@@ -757,11 +748,10 @@ const OrderItem = ({ item, onQuantityChange, onRemove }) => {
 
           <div className="inline-flex items-center border border-gray-300 rounded-full overflow-hidden shadow-sm w-max">
             <button
-              className={`px-4 py-1 text-lg font-semibold transition-all ${
-                item.quantity <= 1
+              className={`px-4 py-1 text-lg font-semibold transition-all ${item.quantity <= 1
                   ? "text-gray-400 bg-gray-100 cursor-not-allowed"
                   : "text-primary hover:bg-gray-200"
-              }`}
+                }`}
               onClick={() => onQuantityChange(item, item.quantity - 1)}
               disabled={item.quantity <= 1}
             >
@@ -773,11 +763,10 @@ const OrderItem = ({ item, onQuantityChange, onRemove }) => {
             </span>
 
             <button
-              className={`px-4 py-1 text-lg font-semibold transition-all ${
-                item.quantity >= item?.stockQuantity
+              className={`px-4 py-1 text-lg font-semibold transition-all ${item.quantity >= item?.stockQuantity
                   ? "text-gray-400 bg-gray-100 cursor-not-allowed"
                   : "text-primary hover:bg-gray-200"
-              }`}
+                }`}
               onClick={() => onQuantityChange(item, item.quantity + 1)}
             >
               +
@@ -885,9 +874,8 @@ const InputField = ({ label, type = "text", value, onChange, error }) => (
       type={type}
       value={value}
       onChange={onChange}
-      className={`w-full border border-gray-300 rounded p-2 ${
-        error ? "border-red-500" : ""
-      }`}
+      className={`w-full border border-gray-300 rounded p-2 ${error ? "border-red-500" : ""
+        }`}
       placeholder={label}
     />
     {error && <p className="text-sm text-red-600 mt-1">{error}</p>}
@@ -897,9 +885,8 @@ const InputField = ({ label, type = "text", value, onChange, error }) => (
 const CardPaymentOption = ({ selected, onChange, setShowCardModal }) => {
   return (
     <label
-      className={`block border rounded-lg p-4 w-full cursor-pointer transition ${
-        selected ? "bg-green-50 border-green-400" : ""
-      }`}
+      className={`block border rounded-lg p-4 w-full cursor-pointer transition ${selected ? "bg-green-50 border-green-400" : ""
+        }`}
     >
       <div className="flex items-center mb-1">
         <input
@@ -1101,9 +1088,8 @@ const AddCardModal = ({ onClose, onSubmit }) => {
 const UpiInputCard = ({ selected, onChange, upiId, setUpiId, onVerify }) => {
   return (
     <label
-      className={`block border rounded-lg p-4 transition ${
-        selected ? "bg-green-50 border-green-400" : ""
-      }`}
+      className={`block border rounded-lg p-4 transition ${selected ? "bg-green-50 border-green-400" : ""
+        }`}
     >
       <div className="flex items-center gap-3 mb-2">
         <input

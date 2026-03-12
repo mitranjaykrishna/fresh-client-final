@@ -11,8 +11,9 @@ import "swiper/css/navigation";
 import "swiper/css/thumbs";
 import "swiper/css/free-mode";
 import { toast } from "react-toastify";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchCartItems } from "../redux/slices/cartSlice";
 import LoginModal from "../components/Login/LoginModal";
-import { cartEvents } from "../utils/commonFunctions";
 
 const DEFAULT_REVIEWS = [
   {
@@ -72,7 +73,9 @@ export default function Product() {
   const [wishlistAnimation, setWishlistAnimation] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [relatedProducts, setRelatedProducts] = useState([]);
-  const [cartData, setCartData] = useState([]);
+
+  const dispatch = useDispatch();
+  const cartData = useSelector((state) => state.cart.items) || [];
   const [selectedVariant, setSelectedVariant] = useState(null);
 
   const getProductDetails = () => {
@@ -84,7 +87,6 @@ export default function Product() {
       .then((response) => {
         setProduct(response?.data?.data);
         getRelatedProducts(response?.data?.data);
-        getUserCart(response?.data?.data);
       })
       .catch(() => {
         setError("Failed to load product. Please try again later.");
@@ -146,7 +148,7 @@ export default function Product() {
         )
         .then(async () => {
           setIsInCart(true);
-          await getUserCart(product);
+          dispatch(fetchCartItems());
           if (goToCheckout) navigate("/checkout");
         })
         .catch(() => { })
@@ -161,7 +163,7 @@ export default function Product() {
         )
         .then(async () => {
           setIsInCart(false);
-          await getUserCart(product);
+          dispatch(fetchCartItems());
         })
         .catch(() => { })
         .finally(() => setLoading(false));
@@ -204,31 +206,7 @@ export default function Product() {
     }
   };
 
-  const getUserCart = async (data) => {
-    try {
-      const res = await services.get(StaticApi.getUserCart);
 
-      const cartItems = Array.isArray(res?.data?.items)
-        ? res.data.items
-        : Array.isArray(res?.data)
-          ? res.data
-          : [];
-
-      setCartData(cartItems);
-
-      // FIX: variant-aware cart detection
-      const isPresent = cartItems.some(
-        (item) =>
-          item.productCode ===
-          (selectedVariant?.productCode || data?.productCode || id) &&
-          item.variantWeightValue === selectedVariant?.weightValue &&
-          item.variantWeightUnit === selectedVariant?.weightUnit
-      );
-
-      setIsInCart(isPresent);
-      cartEvents.refresh();
-    } catch (error) { }
-  };
 
   const checkIfWishlisted = async () => {
     try {
@@ -294,12 +272,11 @@ export default function Product() {
     }
   }, [selectedVariant, cartData]);
 
-  // Load product & variants
   useEffect(() => {
     getProductDetails();
-    cartEvents.refresh();
+    dispatch(fetchCartItems());
     checkIfWishlisted();
-  }, [id]);
+  }, [id, dispatch]);
 
   // When product loads, set default variant
   useEffect(() => {

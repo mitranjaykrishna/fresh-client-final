@@ -3,7 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { services } from "../utils/services";
 import { StaticApi } from "../utils/StaticApi";
 import { Plus, Minus } from "lucide-react";
-import { cartEvents } from "../utils/commonFunctions";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchCartItems } from "../redux/slices/cartSlice";
 
 const getDefaultVariant = (variants = []) => {
   if (!variants.length) return null;
@@ -16,9 +17,10 @@ const getVariantKey = (item) =>
 export default function CategoryProducts() {
   const { category } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const [products, setProducts] = useState([]);
-  const [cartItems, setCartItems] = useState([]);
+  const cartItems = useSelector((state) => state.cart.items) || [];
 
   /* ---------------- FETCH PRODUCTS ---------------- */
   useEffect(() => {
@@ -48,18 +50,9 @@ export default function CategoryProducts() {
     });
   }, [category]);
 
-  /* ---------------- FETCH CART ---------------- */
-  const getCartItems = () => {
-    services.get(StaticApi.getUserCart).then((res) => {
-      setCartItems(res?.data?.items || []);
-      cartEvents.refresh();
-    });
-  };
-
   useEffect(() => {
-    getCartItems();
-    cartEvents.refresh();
-  }, []);
+    dispatch(fetchCartItems());
+  }, [dispatch]);
 
   /* ---------------- CART HELPERS ---------------- */
   const getCartQty = (item) => {
@@ -77,7 +70,7 @@ export default function CategoryProducts() {
       .post(
         `${StaticApi.addToCart}?productCode=${item.productCode}&quantity=1&weightValue=${item.weightValue}&weightUnit=${item.weightUnit}`
       )
-      .then(getCartItems);
+      .then(() => dispatch(fetchCartItems()));
   };
 
   const removeFromCart = (item) => {
@@ -85,7 +78,7 @@ export default function CategoryProducts() {
       .delete(
         `${StaticApi.removeFromCart}?productCode=${item.productCode}&quantity=1&weightValue=${item.weightValue}&weightUnit=${item.weightUnit}`
       )
-      .then(getCartItems);
+      .then(() => dispatch(fetchCartItems()));
   };
 
   /* ---------------- UI ---------------- */

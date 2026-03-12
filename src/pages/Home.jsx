@@ -9,7 +9,6 @@ import "swiper/css";
 import "swiper/css/pagination";
 import { Autoplay } from "swiper/modules";
 import { useNavigate } from "react-router";
-import { cartEvents } from "../utils/commonFunctions";
 
 export default function Home() {
   const [productCat, setProductCat] = useState([]);
@@ -95,7 +94,6 @@ export default function Home() {
   useEffect(() => {
     getAllProductCategories();
     getAllActivateProducts();
-    cartEvents.refresh();
   }, []);
 
   return (

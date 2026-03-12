@@ -4,7 +4,8 @@ import { useNavigate } from "react-router";
 import empty from "../assets/emptyCart.jpg";
 import login from "../assets/login1.png";
 import ButtonPrimary from "../components/Buttons/ButtonPrimary";
-import { cartEvents } from "../utils/commonFunctions";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchCartItems } from "../redux/slices/cartSlice";
 import { services } from "../utils/services";
 import { StaticApi } from "../utils/StaticApi";
 import { StaticRoutes } from "../utils/StaticRoutes";
@@ -18,27 +19,27 @@ export default function Cart() {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-  const isLoggedIn = !!localStorage.getItem("token");
+  const dispatch = useDispatch();
+  const { isLoggedIn } = useSelector((state) => state.auth);
+  const { items: reduxCartItems, cartData: reduxCartData, loading: reduxLoading } = useSelector(state => state.cart);
 
-  /* ---------------- FETCH CART (ONLY INITIAL / DELETE) ---------------- */
-  const getCartItems = () => {
-    setLoading(true);
-    services
-      .get(StaticApi.getUserCart)
-      .then((res) => {
-        const data = res?.data?.items || [];
-        setCartItems(data);
-        setData(res?.data);
-        setSelectedItems(data.map(getVariantKey));
-        cartEvents.refresh();
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  };
+  /* ---------------- FETCH CART ---------------- */
+  useEffect(() => {
+    if (isLoggedIn) {
+      setLoading(true);
+      dispatch(fetchCartItems()).finally(() => setLoading(false));
+    }
+  }, [isLoggedIn, dispatch]);
 
   useEffect(() => {
-    if (isLoggedIn) getCartItems();
-  }, [isLoggedIn]);
+    setCartItems(reduxCartItems);
+    setData(reduxCartData);
+
+    // Auto-select everything initially if nothing is selected
+    if (selectedItems.length === 0 && reduxCartItems.length > 0) {
+      setSelectedItems(reduxCartItems.map(getVariantKey));
+    }
+  }, [reduxCartItems, reduxCartData]);
 
   /* ---------------- OPTIMISTIC QUANTITY CHANGE ---------------- */
   const handleQuantityChange = (variantKey, change) => {
@@ -70,11 +71,11 @@ export default function Cart() {
     if (change === 1) {
       services.post(
         `${StaticApi.addToCart}?productCode=${item.productCode}&quantity=1&weightValue=${item.variantWeightValue}&weightUnit=${item.variantWeightUnit}`
-      );
+      ).then(() => dispatch(fetchCartItems()));
     } else {
       services.delete(
         `${StaticApi.removeSingleItemCart}?productCode=${item.productCode}&quantity=1&weightValue=${item.variantWeightValue}&weightUnit=${item.variantWeightUnit}`
-      );
+      ).then(() => dispatch(fetchCartItems()));
     }
   };
 
@@ -92,7 +93,7 @@ export default function Cart() {
           prev.filter((i) => getVariantKey(i) !== variantKey)
         );
         setSelectedItems((prev) => prev.filter((k) => k !== variantKey));
-        cartEvents.refresh();
+        dispatch(fetchCartItems());
       });
   };
 
@@ -286,11 +287,10 @@ export default function Cart() {
                           handleQuantityChange(getVariantKey(item), -1);
                         }}
                         disabled={item.quantity === 1}
-                        className={`p-1 rounded-md ${
-                          item.quantity === 1
-                            ? "cursor-not-allowed text-gray-400"
-                            : "hover:bg-gray-300"
-                        }`}
+                        className={`p-1 rounded-md ${item.quantity === 1
+                          ? "cursor-not-allowed text-gray-400"
+                          : "hover:bg-gray-300"
+                          }`}
                       >
                         <Minus className="w-4 h-4" />
                       </button>
@@ -359,7 +359,7 @@ export default function Cart() {
 
               <div className="flex justify-between">
                 <span>Delivery Charges:</span>
-                <span>₹{data?.totalShippingCharge.toFixed(2)}</span>
+                <span>₹{(data?.totalShippingCharge || 0).toFixed(2)}</span>
               </div>
 
               <hr />
@@ -367,18 +367,16 @@ export default function Cart() {
               <div className="flex justify-between text-base font-semibold">
                 <span>Total Payable:</span>
                 <span className="text-primary">
-                  ₹
-                  {+priceSummary.payable.toFixed(2) + data?.totalShippingCharge}
+                  ₹{(Number(priceSummary.payable) + Number(data?.totalShippingCharge || 0)).toFixed(2)}
                 </span>
               </div>
             </div>
 
             <button
-              className={`mt-4 ${
-                selectedItems.length === 0
-                  ? "bg-gray-300"
-                  : "bg-primary hover:bg-secondary"
-              }  text-white py-2 rounded-md text-sm transition`}
+              className={`mt-4 ${selectedItems.length === 0
+                ? "bg-gray-300"
+                : "bg-primary hover:bg-secondary"
+                }  text-white py-2 rounded-md text-sm transition`}
               onClick={() => {
                 const selected = cartItems.filter((item) =>
                   selectedItems.includes(getVariantKey(item))
