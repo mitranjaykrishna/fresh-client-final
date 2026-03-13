@@ -11,15 +11,20 @@ import { useLocation, useNavigate } from "react-router";
 import { StaticRoutes } from "../utils/StaticRoutes";
 import { services } from "../utils/services";
 import { StaticApi } from "../utils/StaticApi";
-import { cartEvents } from "../utils/commonFunctions";
+import { useSelector, useDispatch } from "react-redux";
+import { logout } from "../redux/slices/authSlice";
+import { fetchCartItems } from "../redux/slices/cartSlice";
 
 export default function Header() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const searchRef = useRef(null);
   const isProfileRef = useRef(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-  const [cartLength, setCartLength] = useState(false);
+
+  const { isLoggedIn, userName } = useSelector((state) => state.auth);
+  const { cartLength } = useSelector((state) => state.cart);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -66,17 +71,10 @@ export default function Header() {
   }, [searchTerm]);
 
   const handleLogout = () => {
-    localStorage.clear();
+    dispatch(logout());
+    setIsProfileMenuOpen(false);
+    setIsMobileMenuOpen(false);
     navigate("/");
-  };
-  const getCartItems = () => {
-    services
-      .get(`${StaticApi.getUserCart}`)
-      .then((res) => {
-        const data = res?.data?.items?.length || 0;
-        setCartLength(data);
-      })
-      .catch(() => {});
   };
 
   useEffect(() => {
@@ -103,15 +101,10 @@ export default function Header() {
   }, []);
 
   useEffect(() => {
-    const updateCart = () => getCartItems();
-
-    document.addEventListener("cartUpdated", updateCart);
-    cartEvents.refresh();
-
-    return () => {
-      document.removeEventListener("cartUpdated", updateCart);
-    };
-  }, []);
+    if (isLoggedIn) {
+      dispatch(fetchCartItems());
+    }
+  }, [dispatch, isLoggedIn]);
   return (
     <>
       {/* Header */}
@@ -129,12 +122,9 @@ export default function Header() {
           </div>
 
           {/* Desktop Search & Icons */}
-          <div
-            className="hidden md:flex items-center space-x-4 ml-auto relative"
-            ref={searchRef}
-          >
+          <div className="hidden md:flex items-center space-x-4 ml-auto relative">
             {/* Search Bar */}
-            <div className="w-[26rem] relative">
+            <div className="w-[26rem] relative" ref={searchRef}>
               <input
                 value={searchTerm}
                 onChange={handleSearchInput}
@@ -200,140 +190,200 @@ export default function Header() {
             </div>
 
             {/* User Initial & Welcome */}
-            {localStorage.getItem("userName") ? (
-              <div
-                className="flex items-center gap-3 cursor-pointer"
-                onClick={handleProfileToggle}
-                ref={isProfileRef}
-              >
-                <div className="bg-[#ff9933] text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">
-                  {localStorage.getItem("userName").charAt(0).toUpperCase()}
+            <div className="relative" ref={isProfileRef}>
+              {isLoggedIn && userName ? (
+                <div
+                  className="flex items-center gap-3 cursor-pointer"
+                  onClick={handleProfileToggle}
+                >
+                  <div className="bg-[#ff9933] text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">
+                    {userName.charAt(0).toUpperCase()}
+                  </div>
+                  {/* <span className="hidden sm:block text-sm font-medium">
+                    Welcome, {localStorage.getItem("userName").split(" ")[0]}
+                  </span> */}
                 </div>
-                {/* <span className="hidden sm:block text-sm font-medium">
-                  Welcome, {localStorage.getItem("userName").split(" ")[0]}
-                </span> */}
-              </div>
-            ) : (
-              // If not logged in, show profile icon with dropdown
-              <div className="relative" ref={isProfileRef}>
+              ) : (
+                // If not logged in, show profile icon with dropdown
                 <button
-                  className="text-white text-2xl hover:text-secondary"
+                  className="text-white text-2xl hover:text-secondary flex items-center"
                   onClick={handleProfileToggle}
                 >
                   <AiOutlineUser />
                 </button>
-              </div>
-            )}
+              )}
 
-            {isProfileMenuOpen && (
-              <div
-                ref={isProfileRef}
-                className="absolute right-0 mt-2 w-40 bg-white text-black rounded shadow-lg z-50 top-[30px]"
-              >
-                {localStorage.getItem("token") && (
-                  <>
-                    <button
-                      className="w-full text-left px-4 py-2 hover:bg-gray-100"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleProfileNavigate(StaticRoutes.profile);
-                      }}
-                    >
-                      Profile
-                    </button>
+              {isProfileMenuOpen && (
+                <div className="absolute right-0 mt-2 w-40 bg-white text-black rounded shadow-lg z-50 top-[30px]">
+                  {isLoggedIn && (
+                    <>
+                      <button
+                        className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleProfileNavigate(StaticRoutes.profile);
+                        }}
+                      >
+                        Profile
+                      </button>
 
-                    <button
-                      className="w-full text-left px-4 py-2 hover:bg-gray-100"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleProfileNavigate(StaticRoutes.orders);
-                      }}
-                    >
-                      Orders
-                    </button>
-                  </>
-                )}
+                      <button
+                        className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleProfileNavigate(StaticRoutes.orders);
+                        }}
+                      >
+                        Orders
+                      </button>
+                    </>
+                  )}
 
-                <button
-                  className="w-full text-left px-4 py-2 hover:bg-gray-100"
-                  onClick={
-                    localStorage.getItem("token")
-                      ? handleLogout
-                      : () => {
+                  <button
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                    onClick={
+                      isLoggedIn
+                        ? handleLogout
+                        : () => {
                           navigate(StaticRoutes.signin);
+                          setIsProfileMenuOpen(false);
                         }
-                  }
-                >
-                  {localStorage.getItem("token") ? "Logout" : "LogIn"}
-                </button>
-              </div>
-            )}
+                    }
+                  >
+                    {isLoggedIn ? "Logout" : "LogIn"}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Mobile Menu Toggle */}
           <div className="md:hidden flex items-center">
-            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-              {isMobileMenuOpen ? (
-                <AiOutlineClose className="text-2xl" />
-              ) : (
-                <AiOutlineMenu className="text-2xl" />
-              )}
+            <button onClick={() => setIsMobileMenuOpen(true)}>
+              <AiOutlineMenu className="text-2xl" />
             </button>
           </div>
         </div>
       </header>
 
       {/* Mobile Menu Items */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden bg-primary text-white px-4 py-4 space-y-2">
+      {/* Mobile Slide-out Menu Overlay */}
+      <div 
+        className={`fixed inset-0 bg-black/50 z-[60] transition-opacity duration-300 md:hidden ${
+          isMobileMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"
+        }`}
+        onClick={() => setIsMobileMenuOpen(false)}
+      />
+
+      {/* Mobile Slide-out Drawer */}
+      <div 
+        className={`fixed inset-y-0 right-0 w-72 bg-white shadow-2xl z-[70] transform transition-transform duration-300 ease-in-out md:hidden flex flex-col ${
+          isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        {/* Drawer Header */}
+        <div className="flex items-center justify-between p-5 border-b border-gray-100 bg-gray-50">
+          <span className="font-bold text-xl text-gray-900">Menu</span>
+          <button 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="p-2 -mr-2 text-gray-500 hover:text-red-500 transition-colors bg-white rounded-full shadow-sm"
+          >
+            <AiOutlineClose className="text-xl" />
+          </button>
+        </div>
+
+        {/* Drawer User Info (if logged in) */}
+        {isLoggedIn && userName && (
+          <div className="p-5 border-b border-gray-100 flex items-center gap-3 bg-white">
+            <div className="bg-[#ff9933] text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg shadow-sm">
+              {userName.charAt(0).toUpperCase()}
+            </div>
+            <div className="flex flex-col">
+              <span className="text-sm text-gray-500">Welcome back,</span>
+              <span className="font-bold text-gray-900">{userName.split(" ")[0]}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Drawer Links */}
+        <div className="flex-1 overflow-y-auto py-4 px-3 flex flex-col gap-2 bg-white">
           <button
             onClick={() => {
               navigate(StaticRoutes.wishlist);
               setIsMobileMenuOpen(false);
             }}
-            className="text-2xl block"
+            className="flex items-center gap-4 w-full text-left px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors font-medium"
           >
-            <AiOutlineHeart />
+            <AiOutlineHeart className="text-2xl text-gray-400" />
+            <span>Wishlist</span>
           </button>
+          
           <button
             onClick={() => {
               navigate(StaticRoutes.cart);
               setIsMobileMenuOpen(false);
             }}
-            className="text-2xl block"
+            className="flex items-center gap-4 w-full text-left px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors font-medium border-b border-gray-50 pb-4 mb-2"
           >
-            <AiOutlineShoppingCart />
+            <div className="relative">
+              <AiOutlineShoppingCart className="text-2xl text-gray-400" />
+              {cartLength > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                  {cartLength}
+                </span>
+              )}
+            </div>
+            <span>Cart</span>
           </button>
+
+          {isLoggedIn && (
+            <>
+              <button
+                onClick={() => {
+                  navigate(StaticRoutes.profile);
+                  setIsMobileMenuOpen(false);
+                }}
+                className="flex items-center gap-4 w-full text-left px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors font-medium"
+              >
+                <AiOutlineUser className="text-2xl text-gray-400" />
+                <span>My Profile</span>
+              </button>
+              
+              <button
+                onClick={() => {
+                  navigate(StaticRoutes.orders);
+                  setIsMobileMenuOpen(false);
+                }}
+                className="flex items-center gap-4 w-full text-left px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors font-medium"
+              >
+                <span className="text-2xl text-gray-400 w-6 text-center">📦</span>
+                <span>My Orders</span>
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Drawer Footer (Login/Logout) */}
+        <div className="p-4 bg-gray-50 border-t border-gray-100">
           <button
-            onClick={() => {
-              navigate(StaticRoutes.profile);
-              setIsMobileMenuOpen(false);
-            }}
-            className="text-2xl block"
+            onClick={
+              isLoggedIn
+                ? handleLogout
+                : () => {
+                  navigate(StaticRoutes.signin);
+                  setIsMobileMenuOpen(false);
+                }
+            }
+            className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm transition-colors ${
+              isLoggedIn 
+                ? "bg-white text-red-500 border border-red-100 hover:bg-red-50 hover:border-red-200" 
+                : "bg-primary text-white hover:bg-secondary"
+            }`}
           >
-            <AiOutlineUser />
-          </button>
-          <button
-            onClick={() => {
-              navigate(StaticRoutes.orders);
-              setIsMobileMenuOpen(false);
-            }}
-            className="hover:underline text-sm block"
-          >
-            Orders
-          </button>
-          <button
-            onClick={() => {
-              navigate("/signin");
-              setIsMobileMenuOpen(false);
-              localStorage.clear();
-            }}
-            className="hover:underline text-sm block"
-          >
-            Logout
+            {isLoggedIn ? "Log Out" : "Log In / Sign Up"}
           </button>
         </div>
-      )}
+      </div>
     </>
   );
 }

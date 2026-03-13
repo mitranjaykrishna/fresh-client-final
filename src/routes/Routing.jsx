@@ -15,7 +15,7 @@ import Checkout from "../pages/Checkout";
 import Terms from "../pages/Terms";
 import ScrollToTop from "../components/ScrollToTop";
 import ThankYouPage from "../pages/Thankyou";
-import CategoryProducts from "../pages/CategoryProducts";
+import ExploreAll from "../pages/ExploreAll";
 
 export default function Routing() {
   return (
@@ -37,7 +37,9 @@ export default function Routing() {
             <Route path={StaticRoutes?.checkout} element={<Checkout />} />
             <Route path={StaticRoutes?.terms} element={<Terms />} />
             <Route path={StaticRoutes?.thankYou} element={<ThankYouPage />} />
-            <Route path="/category/:category" element={<CategoryProducts />} />
+            <Route path="/category/:category" element={<ExploreAll />} />
+            <Route path="/category" element={<ExploreAll />} />
+            <Route path={StaticRoutes?.explore} element={<ExploreAll />} />
           </Route>
         </Routes>
       </BrowserRouter>

@@ -13,4 +13,5 @@ export const StaticRoutes = {
   terms: "/terms",
   thankYou: "/thankYou",
   notFound: "/not-found",
+  explore: "/explore",
 };

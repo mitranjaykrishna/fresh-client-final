@@ -226,22 +226,22 @@ const ThankYouPage = () => {
           <div className="text-sm space-y-2">
             <div className="flex justify-between">
               <span>Subtotal</span>
-              <span>₹{subtotal}</span>
+              <span>₹{subtotal.toFixed(2)}</span>
             </div>
 
             <div className="flex justify-between text-green-600">
               <span>Discount</span>
-              <span>-₹{discount}</span>
+              <span>-₹{discount.toFixed(2)}</span>
             </div>
 
             <div className="flex justify-between">
               <span>Delivery Fee</span>
-              <span>₹{delivery}</span>
+              <span>₹{delivery.toFixed(2)}</span>
             </div>
 
             <div className="border-t pt-3 flex justify-between font-bold text-green-700 text-lg">
               <span>Total Paid</span>
-              <span>₹{total}</span>
+              <span>₹{total.toFixed(2)}</span>
             </div>
           </div>
         </div>

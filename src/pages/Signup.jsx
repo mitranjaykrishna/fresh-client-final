@@ -163,7 +163,7 @@ export default function Signup() {
             onBlur={signupFormik.handleBlur}
             name="password"
             label="Password"
-            type="password"
+            type="text"
             placeholder="Enter your password"
             error={
               signupFormik.touched.password && signupFormik.errors.password
@@ -181,7 +181,7 @@ export default function Signup() {
             placeholder="Confirm your password"
             error={
               signupFormik.touched.confirmPassword &&
-              signupFormik.errors.confirmPassword
+                signupFormik.errors.confirmPassword
                 ? signupFormik.errors.confirmPassword
                 : ""
             }

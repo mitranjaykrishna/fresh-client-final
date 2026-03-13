@@ -8,9 +8,12 @@ import { services } from "../utils/services";
 import { StaticApi } from "../utils/StaticApi";
 import { toast } from "react-toastify";
 import { StaticRoutes } from "../utils/StaticRoutes";
+import { useDispatch } from "react-redux";
+import { loginSuccess } from "../redux/slices/authSlice";
 
 export default function Signin() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -40,16 +43,25 @@ export default function Signin() {
           setLoading(false);
           if (response.data.token) {
             localStorage.setItem("email", response.data.email);
-            localStorage.setItem("number", response.data.number);
             localStorage.setItem("role", response.data.role);
-            localStorage.setItem("token", response.data.token);
-            localStorage.setItem("userName", response.data.userName);
+
+            dispatch(loginSuccess({
+              token: response.data.token,
+              userName: response.data.userName,
+              userPhone: response.data.number
+            }));
 
             navigate(StaticRoutes.home);
           } else {
           }
         })
         .catch((error) => {
+          if (error.response.status === 400 && error.response.data.message === "Mobile number not registered") {
+            toast.error("User ID or Password is incorrect");
+          }
+          else {
+            toast.error("Something went wrong");
+          }
           setLoading(false);
         });
     },
@@ -108,11 +120,10 @@ export default function Signin() {
               placeholder="Enter your password"
               required
               autoComplete="current-password"
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring ${
-                formik.touched.password && formik.errors.password
-                  ? "border-red-500 focus:ring-red-300"
-                  : "focus:ring-primary"
-              }`}
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring ${formik.touched.password && formik.errors.password
+                ? "border-red-500 focus:ring-red-300"
+                : "focus:ring-primary"
+                }`}
             />
             <button
               type="button"

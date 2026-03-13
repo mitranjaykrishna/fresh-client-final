@@ -11,8 +11,9 @@ import "swiper/css/navigation";
 import "swiper/css/thumbs";
 import "swiper/css/free-mode";
 import { toast } from "react-toastify";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchCartItems } from "../redux/slices/cartSlice";
 import LoginModal from "../components/Login/LoginModal";
-import { cartEvents } from "../utils/commonFunctions";
 
 const DEFAULT_REVIEWS = [
   {
@@ -72,7 +73,9 @@ export default function Product() {
   const [wishlistAnimation, setWishlistAnimation] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [relatedProducts, setRelatedProducts] = useState([]);
-  const [cartData, setCartData] = useState([]);
+
+  const dispatch = useDispatch();
+  const cartData = useSelector((state) => state.cart.items) || [];
   const [selectedVariant, setSelectedVariant] = useState(null);
 
   const getProductDetails = () => {
@@ -84,7 +87,6 @@ export default function Product() {
       .then((response) => {
         setProduct(response?.data?.data);
         getRelatedProducts(response?.data?.data);
-        getUserCart(response?.data?.data);
       })
       .catch(() => {
         setError("Failed to load product. Please try again later.");
@@ -146,7 +148,7 @@ export default function Product() {
         )
         .then(async () => {
           setIsInCart(true);
-          await getUserCart(product);
+          dispatch(fetchCartItems());
           if (goToCheckout) navigate("/checkout");
         })
         .catch(() => { })
@@ -161,7 +163,7 @@ export default function Product() {
         )
         .then(async () => {
           setIsInCart(false);
-          await getUserCart(product);
+          dispatch(fetchCartItems());
         })
         .catch(() => { })
         .finally(() => setLoading(false));
@@ -204,31 +206,7 @@ export default function Product() {
     }
   };
 
-  const getUserCart = async (data) => {
-    try {
-      const res = await services.get(StaticApi.getUserCart);
 
-      const cartItems = Array.isArray(res?.data?.items)
-        ? res.data.items
-        : Array.isArray(res?.data)
-          ? res.data
-          : [];
-
-      setCartData(cartItems);
-
-      // FIX: variant-aware cart detection
-      const isPresent = cartItems.some(
-        (item) =>
-          item.productCode ===
-          (selectedVariant?.productCode || data?.productCode || id) &&
-          item.variantWeightValue === selectedVariant?.weightValue &&
-          item.variantWeightUnit === selectedVariant?.weightUnit
-      );
-
-      setIsInCart(isPresent);
-      cartEvents.refresh();
-    } catch (error) { }
-  };
 
   const checkIfWishlisted = async () => {
     try {
@@ -266,7 +244,7 @@ export default function Product() {
     }
 
     // 3. Fallback
-    return "";
+    return [];
   }, [selectedVariant, product]);
 
   useEffect(() => {
@@ -294,12 +272,11 @@ export default function Product() {
     }
   }, [selectedVariant, cartData]);
 
-  // Load product & variants
   useEffect(() => {
     getProductDetails();
-    cartEvents.refresh();
+    dispatch(fetchCartItems());
     checkIfWishlisted();
-  }, [id]);
+  }, [id, dispatch]);
 
   // When product loads, set default variant
   useEffect(() => {
@@ -432,13 +409,11 @@ export default function Product() {
             {/* Mobile Carousel (hidden on desktop) */}
             <div className="md:hidden w-full">
               <Swiper
-                onSwiper={setThumbsSwiper}
                 spaceBetween={10}
                 slidesPerView={1}
-                freeMode={true}
-                watchSlidesProgress={true}
+                thumbs={{ swiper: thumbsSwiper && !thumbsSwiper.destroyed ? thumbsSwiper : null }}
                 modules={[FreeMode, Thumbs]}
-                className="thumb-swiper mt-2"
+                className="main-swiper mt-2"
               >
                 {normalizedImages.map((img, index) => (
                   <SwiperSlide key={index}>
@@ -473,7 +448,7 @@ export default function Product() {
             {/* Desktop Main Image (hidden on mobile) */}
             <div className="flex-1 hidden md:block">
               <img
-                src={product?.productImages?.url}
+                src={normalizedImages[selectedImage] || product?.productImages?.url}
                 alt={product?.name}
                 className="w-full max-h-[600px] object-cover rounded-lg"
               />
@@ -520,8 +495,8 @@ export default function Product() {
                 <button
                   key={variant.variantId}
                   className={`px-3 py-1 rounded-lg border ${selectedVariant?.variantId === variant.variantId
-                      ? "border-primary bg-primary text-white"
-                      : "border-gray-300 bg-white text-gray-700"
+                    ? "border-primary bg-primary text-white"
+                    : "border-gray-300 bg-white text-gray-700"
                     }`}
                   onClick={() => setSelectedVariant(variant)}
                 >
@@ -532,101 +507,99 @@ export default function Product() {
           )}
 
           {/* Price */}
-          <div className="flex items-end gap-2">
+          <div className="flex items-end gap-3 mt-1">
             {hasValidPrice && (
-              <span className="text-[24px] font-semibold text-primary">
+              <span className="text-3xl font-bold text-gray-900">
                 ₹{discountedPrice.toFixed(2)}
               </span>
             )}
             {hasDiscount && (
               <>
-                <span className="line-through text-gray-500 text-sm">
+                <span className="line-through text-gray-400 text-lg mb-0.5">
                   ₹{price.toFixed(2)}
                 </span>
-                <span className="text-sm text-green-600 font-medium">
-                  ({discount}% OFF)
+                <span className="text-sm bg-green-100 text-green-700 font-bold px-2.5 py-1 rounded-md mb-0.5">
+                  {discount}% OFF
                 </span>
               </>
             )}
           </div>
 
-          {/* quantity increase and decrease*/}
-          <div className="inline-flex items-center border border-gray-300 rounded-full overflow-hidden shadow-sm w-max">
-            <button
-              className={`px-4 py-1 text-lg font-semibold transition-all ${quantity <= 1
-                  ? "text-gray-400 bg-gray-100 cursor-not-allowed"
-                  : "text-primary hover:bg-gray-200"
-                }`}
-              onClick={() => handleQuantityChange(-1)}
-              disabled={quantity <= 1}
-            >
-              –
-            </button>
+          {/* Sticky Mobile Action Bar / Desktop Actions */}
+          <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] md:relative md:border-none md:shadow-none md:p-0 md:bg-transparent z-40 flex flex-col sm:flex-row items-center gap-4 mt-2">
+            {/* quantity increase and decrease */}
+            <div className="w-full sm:w-auto flex justify-between sm:justify-start items-center gap-4">
+              <span className="md:hidden font-medium text-gray-700">Quantity:</span>
+              <div className="inline-flex items-center border border-gray-300 rounded-md overflow-hidden bg-gray-50 h-[42px]">
+                <button
+                  className={`px-4 h-full text-lg flex items-center justify-center font-medium transition-colors ${quantity <= 1
+                    ? "text-gray-400 bg-gray-100 cursor-not-allowed"
+                    : "text-gray-700 hover:bg-gray-200"
+                    }`}
+                  onClick={() => handleQuantityChange(-1)}
+                  disabled={quantity <= 1}
+                >
+                  –
+                </button>
 
-            <span className="px-5 py-1 text-base font-medium text-gray-700 bg-white select-none">
-              {quantity}
-            </span>
+                <span className="w-12 flex items-center justify-center text-base font-semibold text-gray-800 bg-white h-full select-none border-x border-gray-200">
+                  {quantity}
+                </span>
 
-            <button
-              className={`px-4 py-1 text-lg font-semibold transition-all ${quantity >= product?.stockQuantity
-                  ? "text-gray-400 bg-gray-100 cursor-not-allowed"
-                  : "text-primary hover:bg-gray-200"
-                }`}
-              onClick={() => handleQuantityChange(1)}
-              disabled={
-                quantity >=
-                (selectedVariant?.availableQty ??
-                  selectedVariant?.stockQuantity ??
-                  product?.stockQuantity ??
-                  1)
-              }
-            >
-              +
-            </button>
-          </div>
+                <button
+                  className={`px-4 h-full text-lg flex items-center justify-center font-medium transition-colors ${quantity >= product?.stockQuantity
+                    ? "text-gray-400 bg-gray-100 cursor-not-allowed"
+                    : "text-gray-700 hover:bg-gray-200"
+                    }`}
+                  onClick={() => handleQuantityChange(1)}
+                  disabled={
+                    quantity >=
+                    (selectedVariant?.availableQty ??
+                      selectedVariant?.stockQuantity ??
+                      product?.stockQuantity ??
+                      1)
+                  }
+                >
+                  +
+                </button>
+              </div>
+            </div>
 
-          {/* total price */}
-          <div className="text-lg font-semibold text-primary">
-            Total: ₹{(discountedPrice * quantity).toFixed(2)}
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              className={`${product?.stockQuantity <= 0
+            <div className="flex w-full sm:w-auto flex-1 gap-2 items-center">
+              <button
+                className={`flex-1 ${product?.stockQuantity <= 0
                   ? "bg-gray-300 cursor-not-allowed"
                   : "bg-primary hover:bg-secondary"
-                } text-white px-4 py-2 rounded-lg transition-colors h-[42px] flex items-center`}
-              // disabled={product?.stockQuantity <= 0}
-              onClick={() => handleCart(false)}
-            >
-              {cartData?.some(
-                (item) =>
-                  item.productCode === (selectedVariant?.productCode || id) &&
-                  item.variantWeightValue === selectedVariant?.weightValue &&
-                  item.variantWeightUnit === selectedVariant?.weightUnit
-              )
-                ? "Remove from Cart"
-                : "Add to Cart"}
-            </button>
+                  } text-white font-medium px-2 py-2 rounded-lg transition-colors h-[42px] flex justify-center items-center shadow-sm`}
+                onClick={() => handleCart(false)}
+              >
+                {cartData?.some(
+                  (item) =>
+                    item.productCode === (selectedVariant?.productCode || id) &&
+                    item.variantWeightValue === selectedVariant?.weightValue &&
+                    item.variantWeightUnit === selectedVariant?.weightUnit
+                )
+                  ? "Remove from Cart"
+                  : "Add to Cart"}
+              </button>
 
-            {/* Buy Now – now looks SECONDARY */}
-            <button
-              className={`px-4 py-2 rounded-lg transition-colors h-[42px] border flex items-center ${product?.stockQuantity <= 0
-                  ? "bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed"
-                  : "bg-white text-primary border-primary hover:bg-primary hover:text-white"
-                }`}
-              // disabled={product?.stockQuantity <= 0}
-              onClick={buyNow}
-            >
-              Buy Now
-            </button>
+              <button
+                className={`flex-1 font-medium px-2 py-2 rounded-lg transition-colors h-[42px] border flex justify-center items-center shadow-sm ${product?.stockQuantity <= 0
+                  ? "bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed"
+                  : "bg-white text-primary border-primary hover:bg-gray-50"
+                  }`}
+                onClick={buyNow}
+              >
+                Buy Now
+              </button>
 
-            <div
-              className={`text-red-500 cursor-pointer text-2xl transition-transform ${wishlistAnimation ? "wishlist-bounce" : ""
-                }`}
-              onClick={toggleWishlist}
-            >
-              {isWishlisted ? <FaHeart /> : <FaRegHeart />}
+              <div
+                className={`text-red-500 cursor-pointer text-2xl p-2 rounded-full hover:bg-red-50 transition-all ml-1 ${wishlistAnimation ? "wishlist-bounce" : ""
+                  }`}
+                onClick={toggleWishlist}
+              >
+                {isWishlisted ? <FaHeart /> : <FaRegHeart />}
+              </div>
             </div>
           </div>
         </div>
