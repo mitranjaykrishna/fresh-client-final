@@ -56,6 +56,12 @@ export default function Signin() {
           }
         })
         .catch((error) => {
+          if (error.response.status === 400 && error.response.data.message === "Mobile number not registered") {
+            toast.error("User ID or Password is incorrect");
+          }
+          else {
+            toast.error("Something went wrong");
+          }
           setLoading(false);
         });
     },
@@ -115,8 +121,8 @@ export default function Signin() {
               required
               autoComplete="current-password"
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring ${formik.touched.password && formik.errors.password
-                  ? "border-red-500 focus:ring-red-300"
-                  : "focus:ring-primary"
+                ? "border-red-500 focus:ring-red-300"
+                : "focus:ring-primary"
                 }`}
             />
             <button

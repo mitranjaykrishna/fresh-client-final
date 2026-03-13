@@ -66,6 +66,17 @@ const Checkout = () => {
     }
   }, [showAddAddress, isEditing, userName, userPhone]);
 
+  useEffect(() => {
+    if (showAddAddress) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [showAddAddress]);
+
   const isVariantInCart = (cartItems, item) => {
     return cartItems.some(
       (c) =>
@@ -124,10 +135,14 @@ const Checkout = () => {
 
       const res = await services.post(StaticApi.placeOrder, payload);
 
+      console.log("ORDER RESPONSE: ", res);
+
       localStorage.removeItem("selectedCheckoutItems");
 
+      const generatedOrderId = res?.data?.data?.publicOrderId || res?.data?.publicOrderId || res?.data?.data?.orderId;
+
       navigate(StaticRoutes.thankYou, {
-        state: { orderId: res?.data?.data?.orderId },
+        state: { orderId: generatedOrderId },
       });
 
       dispatch(fetchCartItems());
@@ -467,7 +482,7 @@ const Checkout = () => {
           </div>
 
           {/* ---------- Body ---------- */}
-          <div className="px-6 py-4 overflow-y-auto flex-1 space-y-4">
+          <div className="px-6 py-4 overflow-y-auto scrollbar-hide flex-1 space-y-4">
             {[
               ["Name", "userName", true],
               ["Phone", "userNumber", true],
@@ -776,56 +791,56 @@ const OrderItem = ({ item, onQuantityChange, onRemove }) => {
     return "";
   };
   return (
-    <div className="flex gap-4 border rounded p-4 mb-4 shadow-sm w-max">
+    <div className="flex items-center gap-4 border rounded-lg p-3 mb-3 shadow-sm bg-gray-50/50 w-full">
       {/* Image */}
       <img
         src={getImageSrc(item)}
         alt={item?.productName}
         loading="lazy"
-        className="w-[100px] h-[100px]"
+        className="w-16 h-16 object-cover rounded bg-white shadow-sm"
       />
       {/* Details */}
-      <div className="flex flex-col justify-between flex-1">
-        <div>
-          <h3 className="text-lg font-semibold">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-2">
+        <div className="flex-1">
+          <h3 className="text-sm sm:text-base font-semibold text-gray-900 leading-tight">
             {item.name || item?.productName}
           </h3>
 
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-xs text-gray-500 mt-0.5">
             Size: {item.variantWeightValue || "N/A"} {item.variantWeightUnit}
           </p>
 
           {/* PRICE */}
-          <div className="mt-2 flex items-center gap-2">
+          <div className="mt-1 flex items-center gap-1.5 flex-wrap">
             {/* Final price */}
-            <span className="text-xl font-bold text-primary">
+            <span className="text-sm font-bold text-primary">
               ₹{item.afterDiscountAmount ?? item.variantPrice}
             </span>
 
             {/* Cut price */}
             {item.variantDiscount > 0 && (
-              <span className="text-sm text-gray-400 line-through">
+              <span className="text-xs text-gray-400 line-through">
                 ₹{item.variantPrice}
               </span>
             )}
 
             {/* Discount badge */}
             {item.variantDiscount > 0 && (
-              <span className="text-xs font-semibold text-green-600 bg-green-100 px-2 py-0.5 rounded">
-                {item.variantDiscount}% OFF
+              <span className="text-[10px] font-semibold text-green-600 bg-green-100 px-1.5 py-0.5 rounded">
+                -{item.variantDiscount}%
               </span>
             )}
           </div>
         </div>
 
-        <div className="flex items-center gap-3 mt-4">
+        {/* Controls */}
+        <div className="flex items-center gap-3 self-end sm:self-auto">
           {/* Quantity controls */}
-
-          <div className="inline-flex items-center border border-gray-300 rounded-full overflow-hidden shadow-sm w-max">
+          <div className="inline-flex items-center border border-gray-300 rounded-md overflow-hidden bg-white shadow-sm h-8">
             <button
-              className={`px-4 py-1 text-lg font-semibold transition-all ${item.quantity <= 1
-                ? "text-gray-400 bg-gray-100 cursor-not-allowed"
-                : "text-primary hover:bg-gray-200"
+              className={`px-2.5 h-full text-lg flex items-center justify-center font-medium transition-colors ${item.quantity <= 1
+                ? "text-gray-400 bg-gray-50 cursor-not-allowed"
+                : "text-gray-700 hover:bg-gray-100"
                 }`}
               onClick={() => onQuantityChange(item, item.quantity - 1)}
               disabled={item.quantity <= 1}
@@ -833,14 +848,14 @@ const OrderItem = ({ item, onQuantityChange, onRemove }) => {
               –
             </button>
 
-            <span className="px-5 py-1 text-base font-medium text-gray-700 bg-white select-none">
+            <span className="w-8 flex justify-center text-sm font-medium text-gray-800 bg-white select-none">
               {item.quantity}
             </span>
 
             <button
-              className={`px-4 py-1 text-lg font-semibold transition-all ${item.quantity >= item?.stockQuantity
-                ? "text-gray-400 bg-gray-100 cursor-not-allowed"
-                : "text-primary hover:bg-gray-200"
+              className={`px-2.5 h-full text-lg flex items-center justify-center font-medium transition-colors ${item.quantity >= item?.stockQuantity
+                ? "text-gray-400 bg-gray-50 cursor-not-allowed"
+                : "text-gray-700 hover:bg-gray-100"
                 }`}
               onClick={() => onQuantityChange(item, item.quantity + 1)}
             >
@@ -851,10 +866,12 @@ const OrderItem = ({ item, onQuantityChange, onRemove }) => {
           {/* Delete */}
           <button
             onClick={() => onRemove(item)}
-            className="ml-4 text-red-600 text-xl hover:text-red-800"
+            className="text-red-500 hover:text-red-700 p-1.5 rounded-full hover:bg-red-50 transition-colors"
             title="Remove item"
           >
-            🗑
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
           </button>
         </div>
       </div>

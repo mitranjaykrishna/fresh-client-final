@@ -19,6 +19,7 @@ export default function Orders() {
   const [cancelReason, setCancelReason] = useState("");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState("");
 
   const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
   const [returnReason, setReturnReason] = useState("");
@@ -62,18 +63,19 @@ export default function Orders() {
     setIsCancelModalOpen(false);
     setCancelReason("");
     setSelectedOrder(null);
+    setCancelError("");
   };
 
   const handleCancelOrder = async () => {
     if (!cancelReason.trim()) {
-      toast.error("Please enter a cancellation reason");
+      setCancelError("Please specify a cancellation reason");
       return;
     }
 
     setIsCancelling(true);
     try {
       const payload = {
-        orderId: selectedOrder.orderId,
+        orderId: selectedOrder.publicOrderId,
         cancellationReason: cancelReason,
       };
 
@@ -268,7 +270,7 @@ export default function Orders() {
     }
 
     const formData = new FormData();
-    formData.append("orderId", returnOrderSelected.orderId);
+    formData.append("orderId", returnOrderSelected.publicOrderId);
     formData.append("reason", returnReason);
     formData.append("message", returnMessage);
 
@@ -340,9 +342,9 @@ export default function Orders() {
         </div>
       ) : (
         <div className="flex flex-col gap-6">
-          {orders?.map((order) => (
+          {orders?.map((order, index) => (
             <div
-              key={order.orderId}
+              key={order.publicOrderId || `backup-order-${index}`}
               className="border rounded-lg p-4 bg-white shadow-sm"
             >
               {/* Top Summary Bar */}
@@ -353,7 +355,7 @@ export default function Orders() {
                   </span>
                   <span>
                     <strong>TOTAL</strong>:{" "}
-                    {formatCurrency(order.afterDiscountAmount)}
+                    {formatCurrency(parseFloat(order.afterDiscountAmount) + parseFloat(order.shippingCharge))}
                   </span>
                   {order.shippingAddress ? (
                     <span>
@@ -367,7 +369,7 @@ export default function Orders() {
                 </div>
                 <div className="text-sm text-right">
                   <span className="block">
-                    <strong>ORDER #</strong> {order?.publicOrderId}
+                    <strong>ORDER #</strong> {order?.publicOrderId || "Pending"}
                   </span>
                   <div className="mt-1">
                     {getStatusBadge(order?.orderStatus)}
@@ -407,9 +409,9 @@ export default function Orders() {
               </div>
 
               {/* Product Info */}
-              {order?.orderItems?.map((item) => (
+              {order?.orderItems?.map((item, itemIndex) => (
                 <div
-                  key={item.id}
+                  key={item.productCode || item.productId || `orderItem-${itemIndex}`}
                   className="flex gap-4 py-4 border-b last:border-none"
                 >
                   <img
@@ -426,7 +428,14 @@ export default function Orders() {
                     </p>
                     <p className="text-sm text-gray-500 mt-1">
                       Price:{" "}
-                      {formatCurrency(item?.afterDiscountAmount / item?.quantity)}{" "}
+                      {item?.totalAmount > item?.afterDiscountAmount && (
+                        <span className="line-through text-gray-400 mr-2">
+                          {formatCurrency(item?.totalAmount / item?.quantity)}
+                        </span>
+                      )}
+                      <span>
+                        {formatCurrency(item?.afterDiscountAmount / item?.quantity)}
+                      </span>{" "}
                       each
                     </p>
                     <p className="text-sm text-gray-500 mt-1">
@@ -445,8 +454,15 @@ export default function Orders() {
                       </p>
                     )}
                   </div>
-                  <div className="text-sm font-semibold text-green-700">
-                    {formatCurrency(item?.afterDiscountAmount)}
+                  <div className="text-sm font-semibold flex flex-col items-end">
+                    {item?.totalAmount > item?.afterDiscountAmount && (
+                      <span className="line-through text-gray-400 text-xs font-normal">
+                        {formatCurrency(item?.totalAmount)}
+                      </span>
+                    )}
+                    <span className="text-green-700">
+                      {formatCurrency(item?.afterDiscountAmount)}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -454,10 +470,10 @@ export default function Orders() {
               {/* Action Buttons */}
               <div className="flex flex-wrap gap-3 mt-4">
                 <div
-                  onClick={() => trackOrder(order?.orderId)}
+                  onClick={() => trackOrder(order?.publicOrderId)}
                   className="bg-[#4296879a] text-black font-medium py-[10px] px-[10px] cursor-pointer flex items-center justify-center rounded-md text-sm hover:bg-yellow-300 max-h"
                 >
-                  Trach Order
+                  Track Order
                 </div>
                 <div
                   onClick={() => buyNow(order?.orderItems)}
@@ -473,12 +489,12 @@ export default function Orders() {
                     >
                       Get product support
                     </div>
-                    <div
+                    {/* <div
                       onClick={() => openReturnModal(order)}
                       className="bg-blue-500 text-white font-medium px-[10px] py-[10px] cursor-pointer rounded-md text-sm hover:bg-blue-600 flex items-center justify-center max-h"
                     >
                       Return
-                    </div>
+                    </div> */}
                     <div
                       onClick={() => exchangeOrder(order)}
                       className="bg-purple-500 text-white font-medium px-[10px] py-[10px] cursor-pointer rounded-md text-sm hover:bg-purple-600 flex items-center justify-center max-h"
@@ -488,12 +504,12 @@ export default function Orders() {
                   </>
                 )}
 
-                <div
+                {/* <div
                   onClick={() => openReturnModal(order)}
                   className="bg-blue-500 text-white font-medium px-[10px] py-[10px] cursor-pointer rounded-md text-sm hover:bg-blue-600 flex items-center justify-center max-h"
                 >
                   Return
-                </div>
+                </div> */}
                 {!["Delivered", "Cancelled"].includes(order.orderStatus) && (
                   <>
                     <button
@@ -524,7 +540,7 @@ export default function Orders() {
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-bold">
-                Cancel Order #{selectedOrder?.orderId}
+                Cancel Order #{selectedOrder?.publicOrderId}
               </h3>
               <button
                 onClick={closeCancelModal}
@@ -550,9 +566,9 @@ export default function Orders() {
             <div className="mb-4">
               <p className="mb-2 font-medium">Items in this order:</p>
               <ul className="max-h-60 overflow-y-auto border rounded p-2 space-y-3">
-                {selectedOrder?.orderItems?.map((item) => (
+                {selectedOrder?.orderItems?.map((item, itemIndex) => (
                   <li
-                    key={item.id}
+                    key={item.productCode || item.productId || itemIndex}
                     className="py-2 border-b last:border-b-0 flex gap-3"
                   >
                     <div className="flex-shrink-0">
@@ -585,15 +601,15 @@ export default function Orders() {
                 ))}
               </ul>
               <div className="mt-2 text-sm">
-                <p className="font-medium">
-                  Order Total:{" "}
-                  {formatCurrency(selectedOrder?.afterDiscountAmount)}
-                </p>
                 {selectedOrder?.shippingCharge && (
                   <p className="text-gray-500">
                     Shipping: {formatCurrency(selectedOrder?.shippingCharge)}
                   </p>
                 )}
+                <p className="font-medium">
+                  Order Total:{" "}
+                  {formatCurrency(parseFloat(selectedOrder?.afterDiscountAmount) + parseFloat(selectedOrder?.shippingCharge))}
+                </p>
               </div>
             </div>
 
@@ -603,11 +619,16 @@ export default function Orders() {
               </label>
               <textarea
                 value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
-                className="w-full border rounded-md p-2 h-24"
-                placeholder="Please specify why you're cancelling this order..."
-                required
+                onChange={(e) => {
+                  setCancelReason(e.target.value);
+                  if (cancelError) setCancelError("");
+                }}
+                className={`w-full border rounded-md p-2 h-24 ${cancelError ? 'border-red-500 placeholder-red-400' : 'border-gray-300'}`}
+                placeholder={cancelError ? "Required field" : "Please specify why you're cancelling this order..."}
               />
+              {cancelError && (
+                <p className="text-red-500 text-sm mt-1">{cancelError}</p>
+              )}
             </div>
 
             <div className="flex justify-end space-x-3">
@@ -616,7 +637,7 @@ export default function Orders() {
                 className="px-4 py-2 border rounded-md hover:bg-gray-100"
                 disabled={isCancelling}
               >
-                Back
+                Close
               </button>
               <button
                 onClick={handleCancelOrder}
@@ -637,7 +658,7 @@ export default function Orders() {
             {/* HEADER */}
             <div className="flex justify-between items-center px-6 py-4 border-b">
               <h2 className="text-lg font-semibold">
-                Return Order #{returnOrderSelected?.orderId}
+                Return Order #{returnOrderSelected?.publicOrderId}
               </h2>
               <button
                 onClick={closeReturnModal}
@@ -653,9 +674,9 @@ export default function Orders() {
                 <p className="font-medium text-sm mb-3">Items in this order</p>
 
                 <ul className="space-y-3">
-                  {returnOrderSelected?.orderItems?.map((item) => (
+                  {returnOrderSelected?.orderItems?.map((item, itemIndex) => (
                     <li
-                      key={item.id}
+                      key={item.productCode || item.productId || itemIndex}
                       className="flex gap-4 p-3 border rounded-lg hover:bg-gray-50"
                     >
                       <img
