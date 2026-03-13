@@ -355,9 +355,13 @@ export default function Orders() {
                     <strong>TOTAL</strong>:{" "}
                     {formatCurrency(order.afterDiscountAmount)}
                   </span>
-                  {order.shippingAddress && (
+                  {order.shippingAddress ? (
                     <span>
-                      <strong>SHIP TO</strong>: {order.shippingAddress.name}
+                      <strong>SHIP TO</strong>: {order.shippingAddress.name || order.shippingAddress.userName || "N/A"}
+                    </span>
+                  ) : (
+                    <span>
+                      <strong>SHIP TO</strong>: N/A
                     </span>
                   )}
                 </div>

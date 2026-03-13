@@ -101,3 +101,18 @@
 html {
   scrollbar-gutter: stable;
 }
+
+/* Slide In Right Animation */
+@keyframes slideInRight {
+    0% {
+        transform: translateX(100%);
+    }
+
+    100% {
+        transform: translateX(0);
+    }
+}
+
+.slide-in-right {
+    animation: slideInRight 0.3s ease-out forwards;
+}

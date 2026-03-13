@@ -11,13 +11,14 @@ import { services } from "../utils/services";
 import { StaticRoutes } from "../utils/StaticRoutes";
 import { useNavigate } from "react-router";
 import StateCity from "../utils/StateCity.json";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { fetchCartItems } from "../redux/slices/cartSlice";
 
 // --- Checkout Component ---
 const Checkout = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { userName, userPhone } = useSelector((state) => state.auth);
   const [selectedPayment, setSelectedPayment] = useState("cod");
   const [showAddAddress, setShowAddAddress] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -32,7 +33,9 @@ const Checkout = () => {
   const [states, setStates] = useState(Object.keys(StateCity));
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [selectedState, setSelectedState] = useState("");
+  const [stateSearch, setStateSearch] = useState("");
   const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
+  const [citySearch, setCitySearch] = useState("");
   const [cities, setCities] = useState([]);
   const [newAddress, setNewAddress] = useState({
     addressLine1: "",
@@ -55,12 +58,12 @@ const Checkout = () => {
         state: "",
         postalCode: "",
         country: "India",
-        userNumber: "",
-        userName: "",
+        userNumber: userPhone || "",
+        userName: userName || "",
         default: false,
       });
     }
-  }, [showAddAddress]);
+  }, [showAddAddress, isEditing, userName, userPhone]);
 
   const isVariantInCart = (cartItems, item) => {
     return cartItems.some(
@@ -311,24 +314,25 @@ const Checkout = () => {
       <div className="mb-6">
         <h2 className="text-xl font-semibold mb-4">Delivery Address</h2>
         <div className="grid gap-4">
-          {(showMore ? addressList : addressList.slice(0, 1)).map(
-            (addr, index) => (
-              <AddressCard
-                key={addr?.addressId}
-                address={addr}
-                selected={selectedAddress === index}
-                onChange={() => setSelectedAddress(index)}
-                onEdit={(addr) => {
-                  setIsEditing(true);
-                  setEditIndex(index);
-                  setNewAddress(addr);
-                  setShowAddAddress(true);
-                }}
-                onDelete={() => handleDeleteAddress(addr.addressId)}
-                onSetDefault={() => handleSetDefaultAddress(addr.addressId)}
-              />
-            )
-          )}
+          {(addressList.length > 0 && addressList[0] !== undefined) &&
+            (showMore ? addressList : addressList?.slice(0, 1))?.map(
+              (addr, index) => (
+                <AddressCard
+                  key={addr?.addressId || index}
+                  address={addr}
+                  selected={selectedAddress === index}
+                  onChange={() => setSelectedAddress(index)}
+                  onEdit={(addr) => {
+                    setIsEditing(true);
+                    setEditIndex(index);
+                    setNewAddress(addr);
+                    setShowAddAddress(true);
+                  }}
+                  onDelete={() => handleDeleteAddress(addr.addressId)}
+                  onSetDefault={() => handleSetDefaultAddress(addr.addressId)}
+                />
+              )
+            )}
 
           {addressList.length > 1 && (
             <button
@@ -416,12 +420,29 @@ const Checkout = () => {
         </div>
       </div>
 
-      {/* Address Modal */}
-      {showAddAddress && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="relative bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[85vh] flex flex-col">
-            {/* ---------- Header ---------- */}
-            <div className="flex items-center justify-between px-6 py-4 border-b">
+      {/* Address Drawer */}
+      <div 
+        className={`fixed inset-0 z-50 flex justify-end transition-all duration-300 ${
+          showAddAddress ? "opacity-100 visible" : "opacity-0 invisible"
+        }`}
+      >
+        <div 
+          className={`absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 ${
+            showAddAddress ? "opacity-100" : "opacity-0"
+          }`}
+          onClick={() => {
+            setShowAddAddress(false);
+            setIsEditing(false);
+            setEditIndex(null);
+          }}
+        />
+        <div 
+          className={`relative bg-white w-full max-w-md h-full shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out ${
+            showAddAddress ? "translate-x-0" : "translate-x-full"
+          }`}
+        >
+          {/* ---------- Header ---------- */}
+          <div className="flex items-center justify-between px-6 py-4 border-b bg-gray-50">
               <h3 className="text-lg font-semibold">
                 {isEditing ? "Edit Address" : "Add New Address"}
               </h3>
@@ -463,65 +484,98 @@ const Checkout = () => {
               {/* ---------- State Dropdown ---------- */}
               <div className="relative">
                 <label className="block text-sm font-medium mb-1">State</label>
-                <button
-                  type="button"
-                  className="w-full border rounded px-3 py-2 text-left"
+                <div
+                  className="w-full border rounded px-3 py-2 text-left bg-white cursor-pointer"
                   onClick={() => setDropdownOpen(!dropdownOpen)}
                 >
                   {selectedState || "Select State"}
-                </button>
+                </div>
 
                 {dropdownOpen && (
-                  <ul className="absolute z-20 mt-1 w-full bg-white border rounded shadow max-h-48 overflow-y-auto">
-                    {states.map((state) => (
-                      <li
-                        key={state}
-                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => {
-                          setSelectedState(state);
-                          setNewAddress((prev) => ({
-                            ...prev,
-                            state,
-                            city: "",
-                          }));
-                          setCities(StateCity[state] || []);
-                          setDropdownOpen(false);
-                        }}
-                      >
-                        {state}
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="absolute z-20 mt-1 w-full bg-white border rounded shadow">
+                    <div className="p-2 border-b sticky top-0 bg-white">
+                      <input
+                        type="text"
+                        placeholder="Search state..."
+                        value={stateSearch}
+                        onChange={(e) => setStateSearch(e.target.value)}
+                        className="w-full border rounded px-2 py-1 text-sm outline-none"
+                        autoFocus
+                      />
+                    </div>
+                    <ul className="max-h-48 overflow-y-auto">
+                      {states
+                        .filter((s) => s.toLowerCase().includes(stateSearch.toLowerCase()))
+                        .map((state) => (
+                          <li
+                            key={state}
+                            className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                            onClick={() => {
+                              setSelectedState(state);
+                              setNewAddress((prev) => ({
+                                ...prev,
+                                state,
+                                city: "",
+                              }));
+                              setCities(StateCity[state] || []);
+                              setDropdownOpen(false);
+                              setStateSearch("");
+                            }}
+                          >
+                            {state}
+                          </li>
+                        ))}
+                      {states.filter((s) => s.toLowerCase().includes(stateSearch.toLowerCase())).length === 0 && (
+                        <li className="px-4 py-2 text-gray-500 text-sm">No state found</li>
+                      )}
+                    </ul>
+                  </div>
                 )}
               </div>
 
               {/* ---------- City Dropdown ---------- */}
               <div className="relative">
                 <label className="block text-sm font-medium mb-1">City</label>
-                <button
-                  type="button"
-                  className="w-full border rounded px-3 py-2 text-left disabled:bg-gray-100"
-                  onClick={() => setCityDropdownOpen(!cityDropdownOpen)}
-                  disabled={!selectedState}
+                <div
+                  className={`w-full border rounded px-3 py-2 text-left ${!selectedState ? "bg-gray-100 cursor-not-allowed" : "bg-white cursor-pointer"}`}
+                  onClick={() => selectedState && setCityDropdownOpen(!cityDropdownOpen)}
                 >
                   {newAddress.city || "Select City"}
-                </button>
+                </div>
 
                 {cityDropdownOpen && (
-                  <ul className="absolute z-20 mt-1 w-full bg-white border rounded shadow max-h-48 overflow-y-auto">
-                    {cities.map((city) => (
-                      <li
-                        key={city}
-                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => {
-                          setNewAddress((prev) => ({ ...prev, city }));
-                          setCityDropdownOpen(false);
-                        }}
-                      >
-                        {city}
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="absolute z-20 mt-1 w-full bg-white border rounded shadow">
+                    <div className="p-2 border-b sticky top-0 bg-white">
+                      <input
+                        type="text"
+                        placeholder="Search city..."
+                        value={citySearch}
+                        onChange={(e) => setCitySearch(e.target.value)}
+                        className="w-full border rounded px-2 py-1 text-sm outline-none"
+                        autoFocus
+                      />
+                    </div>
+                    <ul className="max-h-48 overflow-y-auto">
+                      {cities
+                        .filter((c) => c.toLowerCase().includes(citySearch.toLowerCase()))
+                        .map((city) => (
+                          <li
+                            key={city}
+                            className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                            onClick={() => {
+                              setNewAddress((prev) => ({ ...prev, city }));
+                              setCityDropdownOpen(false);
+                              setCitySearch("");
+                            }}
+                          >
+                            {city}
+                          </li>
+                        ))}
+                      {cities.filter((c) => c.toLowerCase().includes(citySearch.toLowerCase())).length === 0 && (
+                        <li className="px-4 py-2 text-gray-500 text-sm">No city found</li>
+                      )}
+                    </ul>
+                  </div>
                 )}
               </div>
 
@@ -558,7 +612,6 @@ const Checkout = () => {
             </div>
           </div>
         </div>
-      )}
 
       {/* Card Modal */}
       {showCardModal && (
@@ -749,8 +802,8 @@ const OrderItem = ({ item, onQuantityChange, onRemove }) => {
           <div className="inline-flex items-center border border-gray-300 rounded-full overflow-hidden shadow-sm w-max">
             <button
               className={`px-4 py-1 text-lg font-semibold transition-all ${item.quantity <= 1
-                  ? "text-gray-400 bg-gray-100 cursor-not-allowed"
-                  : "text-primary hover:bg-gray-200"
+                ? "text-gray-400 bg-gray-100 cursor-not-allowed"
+                : "text-primary hover:bg-gray-200"
                 }`}
               onClick={() => onQuantityChange(item, item.quantity - 1)}
               disabled={item.quantity <= 1}
@@ -764,8 +817,8 @@ const OrderItem = ({ item, onQuantityChange, onRemove }) => {
 
             <button
               className={`px-4 py-1 text-lg font-semibold transition-all ${item.quantity >= item?.stockQuantity
-                  ? "text-gray-400 bg-gray-100 cursor-not-allowed"
-                  : "text-primary hover:bg-gray-200"
+                ? "text-gray-400 bg-gray-100 cursor-not-allowed"
+                : "text-primary hover:bg-gray-200"
                 }`}
               onClick={() => onQuantityChange(item, item.quantity + 1)}
             >
