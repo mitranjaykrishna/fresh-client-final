@@ -259,38 +259,83 @@ export default function Header() {
 
           {/* Mobile Menu Toggle */}
           <div className="md:hidden flex items-center">
-            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-              {isMobileMenuOpen ? (
-                <AiOutlineClose className="text-2xl" />
-              ) : (
-                <AiOutlineMenu className="text-2xl" />
-              )}
+            <button onClick={() => setIsMobileMenuOpen(true)}>
+              <AiOutlineMenu className="text-2xl" />
             </button>
           </div>
         </div>
       </header>
 
       {/* Mobile Menu Items */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden bg-primary text-white px-4 py-4 space-y-2">
+      {/* Mobile Slide-out Menu Overlay */}
+      <div 
+        className={`fixed inset-0 bg-black/50 z-[60] transition-opacity duration-300 md:hidden ${
+          isMobileMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"
+        }`}
+        onClick={() => setIsMobileMenuOpen(false)}
+      />
+
+      {/* Mobile Slide-out Drawer */}
+      <div 
+        className={`fixed inset-y-0 right-0 w-72 bg-white shadow-2xl z-[70] transform transition-transform duration-300 ease-in-out md:hidden flex flex-col ${
+          isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        {/* Drawer Header */}
+        <div className="flex items-center justify-between p-5 border-b border-gray-100 bg-gray-50">
+          <span className="font-bold text-xl text-gray-900">Menu</span>
+          <button 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="p-2 -mr-2 text-gray-500 hover:text-red-500 transition-colors bg-white rounded-full shadow-sm"
+          >
+            <AiOutlineClose className="text-xl" />
+          </button>
+        </div>
+
+        {/* Drawer User Info (if logged in) */}
+        {isLoggedIn && userName && (
+          <div className="p-5 border-b border-gray-100 flex items-center gap-3 bg-white">
+            <div className="bg-[#ff9933] text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg shadow-sm">
+              {userName.charAt(0).toUpperCase()}
+            </div>
+            <div className="flex flex-col">
+              <span className="text-sm text-gray-500">Welcome back,</span>
+              <span className="font-bold text-gray-900">{userName.split(" ")[0]}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Drawer Links */}
+        <div className="flex-1 overflow-y-auto py-4 px-3 flex flex-col gap-2 bg-white">
           <button
             onClick={() => {
               navigate(StaticRoutes.wishlist);
               setIsMobileMenuOpen(false);
             }}
-            className="text-2xl block"
+            className="flex items-center gap-4 w-full text-left px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors font-medium"
           >
-            <AiOutlineHeart />
+            <AiOutlineHeart className="text-2xl text-gray-400" />
+            <span>Wishlist</span>
           </button>
+          
           <button
             onClick={() => {
               navigate(StaticRoutes.cart);
               setIsMobileMenuOpen(false);
             }}
-            className="text-2xl block"
+            className="flex items-center gap-4 w-full text-left px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors font-medium border-b border-gray-50 pb-4 mb-2"
           >
-            <AiOutlineShoppingCart />
+            <div className="relative">
+              <AiOutlineShoppingCart className="text-2xl text-gray-400" />
+              {cartLength > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                  {cartLength}
+                </span>
+              )}
+            </div>
+            <span>Cart</span>
           </button>
+
           {isLoggedIn && (
             <>
               <button
@@ -298,21 +343,28 @@ export default function Header() {
                   navigate(StaticRoutes.profile);
                   setIsMobileMenuOpen(false);
                 }}
-                className="text-2xl block"
+                className="flex items-center gap-4 w-full text-left px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors font-medium"
               >
-                <AiOutlineUser />
+                <AiOutlineUser className="text-2xl text-gray-400" />
+                <span>My Profile</span>
               </button>
+              
               <button
                 onClick={() => {
                   navigate(StaticRoutes.orders);
                   setIsMobileMenuOpen(false);
                 }}
-                className="hover:underline text-sm block"
+                className="flex items-center gap-4 w-full text-left px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors font-medium"
               >
-                Orders
+                <span className="text-2xl text-gray-400 w-6 text-center">📦</span>
+                <span>My Orders</span>
               </button>
             </>
           )}
+        </div>
+
+        {/* Drawer Footer (Login/Logout) */}
+        <div className="p-4 bg-gray-50 border-t border-gray-100">
           <button
             onClick={
               isLoggedIn
@@ -322,12 +374,16 @@ export default function Header() {
                   setIsMobileMenuOpen(false);
                 }
             }
-            className="hover:underline text-sm block"
+            className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm transition-colors ${
+              isLoggedIn 
+                ? "bg-white text-red-500 border border-red-100 hover:bg-red-50 hover:border-red-200" 
+                : "bg-primary text-white hover:bg-secondary"
+            }`}
           >
-            {isLoggedIn ? "Logout" : "LogIn"}
+            {isLoggedIn ? "Log Out" : "Log In / Sign Up"}
           </button>
         </div>
-      )}
+      </div>
     </>
   );
 }

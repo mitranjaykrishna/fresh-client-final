@@ -98,8 +98,9 @@
   animation: wishlist-bounce 0.4s ease-in-out;
 }
 
-html {
+html, body {
   scrollbar-gutter: stable;
+  @apply bg-gray-50 text-gray-900 antialiased;
 }
 
 /* Slide In Right Animation */
@@ -115,4 +116,8 @@ html {
 
 .slide-in-right {
     animation: slideInRight 0.3s ease-out forwards;
+}
+
+body {
+  @apply bg-gray-50 text-gray-900 antialiased;
 }

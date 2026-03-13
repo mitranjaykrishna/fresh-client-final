@@ -144,8 +144,8 @@ export default function Cart() {
 
   /* ---------------- UI (UNCHANGED) ---------------- */
   return (
-    <div className="px-4 h-full sm:px-6 lg:px-10 xl:px-20 2xl:px-[220px] py-5 flex flex-col lg:flex-row gap-6 bg-[oklch(0.9_0_0)]">
-      <div className="flex-1 flex flex-col gap-5">
+    <div className="px-4 min-h-screen sm:px-6 lg:px-10 xl:px-20 2xl:px-[220px] py-5 flex flex-col lg:flex-row items-start gap-6 bg-gray-50">
+      <div className="flex-1 flex flex-col gap-5 w-full">
         <div className="p-5 bg-white rounded-sm">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold text-primary">Shopping Cart</h1>
@@ -171,152 +171,129 @@ export default function Cart() {
           {!isLoggedIn ? (
             <div className="text-center text-primary text-lg font-medium">
               Please log in to view your cart.
-              <div className="w-max flex self-center justify-self-center mt-4">
+              <div className="w-max flex self-center justify-self-center mt-6">
                 <ButtonPrimary
                   label="Login"
                   handleOnClick={() => navigate(StaticRoutes.signin)}
                 />
               </div>
-              <img src={login} className="w-full object-cover" />
+              <img src={login} className="w-64 h-64 sm:w-80 sm:h-80 object-contain mx-auto mix-blend-multiply mt-8 opacity-90" />
             </div>
           ) : loading ? (
             <p className="text-center py-10 text-gray-500">Loading...</p>
           ) : cartItems.length === 0 ? (
             <div className="text-center py-10 text-gray-500 flex flex-col justify-center items-center">
-              {" "}
+              <img src={empty} alt="Empty Cart" className="w-48 h-48 sm:w-64 sm:h-64 object-contain mix-blend-multiply opacity-80 mb-6" />
               <div className="w-max gap-[20px] flex flex-col justify-center items-center">
-                {" "}
-                <p className="text-centers text-primary font-semibold text-lg">
+                <p className="text-centers text-gray-800 font-semibold text-lg">
                   Your cart is empty
-                </p>{" "}
+                </p>
+                <div className="mt-2 text-sm text-gray-500 mb-6">Looks like you haven't added anything yet.</div>
                 <ButtonPrimary
                   label="Explore Products"
                   handleOnClick={() => navigate("/")}
-                />{" "}
-              </div>{" "}
-              <img src={empty} alt="empty" className="w-full object-cover" />{" "}
+                />
+              </div>
             </div>
           ) : (
             cartItems.map((item) => (
               <div
                 key={getVariantKey(item)}
-                className="flex flex-col sm:flex-row items-center gap-4 border-b py-4"
+                className="flex items-center gap-3 sm:gap-4 border-b pb-4 pt-2 last:border-0 hover:bg-gray-50 transition-colors rounded-lg px-2 sm:px-0"
               >
-                <div className="relative w-full flex-shrink-0 sm:hidden">
+                {/* Checkbox & Image container */}
+                <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                   <input
                     type="checkbox"
-                    className="absolute top-1 left-1 w-4 h-4 cursor-pointer"
+                    className="w-4 h-4 sm:w-5 sm:h-5 cursor-pointer accent-primary"
                     checked={selectedItems.includes(getVariantKey(item))}
                     onChange={(e) => {
                       e.stopPropagation();
                       toggleItemSelect(getVariantKey(item));
                     }}
                   />
-                  <img
-                    src={item.variantImages?.[0]?.url}
-                    alt={item.productName}
-                    className="w-full h-full object-cover rounded-md"
-                    onClick={() => {
-                      navigate(`/product/${item.productCode}`);
-                    }}
-                  />
-                </div>
-
-                <div className="hidden sm:flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    className="h-5 w-5 cursor-pointer"
-                    checked={selectedItems.includes(getVariantKey(item))}
-                    onChange={(e) => {
-                      e.stopPropagation();
-                      toggleItemSelect(getVariantKey(item));
-                    }}
-                  />
-                  <div className="w-[100px] h-[100px] flex-shrink-0">
+                  <div 
+                    className="w-16 h-16 sm:w-20 sm:h-20 bg-white border rounded-md overflow-hidden cursor-pointer flex-shrink-0 shadow-sm"
+                    onClick={() => navigate(`/product/${item.productCode}`)}
+                  >
                     <img
                       src={item.variantImages?.[0]?.url}
                       alt={item.productName}
-                      className="w-full h-full object-cover rounded-md"
-                      onClick={() => {
-                        navigate(`/product/${item.productCode}`);
-                      }}
+                      className="w-full h-full object-cover"
                     />
                   </div>
                 </div>
 
-                <div
-                  className="flex-1 w-full"
-                  onClick={() => {
-                    navigate(`/product/${item.productCode}`);
-                  }}
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h2 className="text-lg font-semibold">
-                        {item.productName}
-                      </h2>
-                      <p className="text-sm text-gray-600">
-                        Qty: {item.quantity}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {item?.variantWeightValue} {item?.variantWeightUnit}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm text-gray-400 line-through">
-                        ₹{item.variantPrice * item.quantity}
-                      </p>
+                {/* Details & Controls */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-2">
+                  <div 
+                    className="flex-1 cursor-pointer w-full"
+                    onClick={() => navigate(`/product/${item.productCode}`)}
+                  >
+                    <h2 className="text-sm sm:text-base font-semibold text-gray-900 leading-tight line-clamp-2">
+                      {item.productName}
+                    </h2>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Size: {item?.variantWeightValue} {item?.variantWeightUnit}
+                    </p>
 
-                      <p className="text-primary font-bold text-lg">
+                    {/* Pricing */}
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      <span className="text-sm font-bold text-primary">
                         ₹{item.afterDiscountAmount}
-                      </p>
-
+                      </span>
+                      {item.variantPrice * item.quantity > item.afterDiscountAmount && (
+                        <span className="text-xs text-gray-400 line-through">
+                          ₹{item.variantPrice * item.quantity}
+                        </span>
+                      )}
                       {item.gst > 0 && (
-                        <p className="text-xs text-gray-500">
-                          GST: ₹{item.gst}
-                        </p>
+                        <span className="text-[10px] text-gray-500 bg-gray-100 px-1 rounded">
+                          +₹{item.gst} GST
+                        </span>
                       )}
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 mt-2 text-sm text-gray-600 flex-wrap">
-                    <div className="flex items-center gap-2 bg-quaternary px-2 py-1 rounded-md">
+                  {/* Actions (Quantity + Delete) */}
+                  <div className="flex items-center gap-3 self-end sm:self-auto w-full sm:w-auto justify-end mt-1 sm:mt-0">
+                    <div className="inline-flex items-center border border-gray-300 rounded-md overflow-hidden bg-white shadow-sm h-8">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleQuantityChange(getVariantKey(item), -1);
                         }}
                         disabled={item.quantity === 1}
-                        className={`p-1 rounded-md ${item.quantity === 1
-                          ? "cursor-not-allowed text-gray-400"
-                          : "hover:bg-gray-300"
+                        className={`px-2.5 h-full text-lg flex items-center justify-center font-medium transition-colors ${item.quantity === 1
+                          ? "text-gray-400 bg-gray-50 cursor-not-allowed"
+                          : "text-gray-700 hover:bg-gray-100"
                           }`}
                       >
-                        <Minus className="w-4 h-4" />
+                        <Minus className="w-3.5 h-3.5" />
                       </button>
-                      <span className="font-semibold">{item.quantity}</span>
+                      <span className="w-8 flex justify-center text-sm font-medium text-gray-800 bg-white select-none">
+                        {item.quantity}
+                      </span>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleQuantityChange(getVariantKey(item), 1);
                         }}
-                        className="p-1 rounded-md hover:bg-gray-300"
+                        className="px-2.5 h-full text-lg flex items-center justify-center font-medium transition-colors text-gray-700 hover:bg-gray-100"
                       >
-                        <Plus className="w-4 h-4" />
+                        <Plus className="w-3.5 h-3.5" />
                       </button>
                     </div>
 
-                    <span>|</span>
-
                     <button
-                      className="text-red-500 flex items-center gap-1 hover:underline cursor-pointer"
+                      className="text-red-500 hover:text-red-700 p-1.5 rounded-full hover:bg-red-50 transition-colors"
+                      title="Remove item"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleRemove(getVariantKey(item));
                       }}
                     >
-                      <Trash2 className="w-4 h-4" />
-                      Delete
+                      <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
                   </div>
                 </div>
@@ -327,7 +304,7 @@ export default function Cart() {
       </div>
 
       {cartItems.length > 0 && (
-        <div className="lg:w-[300px] xl:w-[340px] sticky top-[100px]">
+        <div className="lg:w-[320px] xl:w-[350px] sticky top-[90px] self-start w-full">
           <div className="bg-white border p-5 rounded-2xl flex flex-col gap-4 max-h-[500px] overflow-y-auto">
             <h2 className="text-lg font-semibold">Order Summary</h2>
             <div className="flex justify-between text-sm">

@@ -200,24 +200,25 @@ export default function Wishlist() {
               <div className="text-center py-10 text-gray-500">Loading...</div>
             ) : wishlistItems.length === 0 ? (
               <div className="text-center py-10 text-gray-500 flex flex-col justify-center items-center">
-                {" "}
                 <img
                   src={empty}
-                  alt="empty"
-                  className="w-full object-cover"
-                />{" "}
+                  alt="empty wishlist"
+                  className="w-48 h-48 sm:w-64 sm:h-64 object-contain mix-blend-multiply opacity-80 mb-6"
+                />
                 <div className="w-max gap-[20px] flex flex-col justify-center items-center">
-                  {" "}
-                  Your wishlist is empty.{" "}
+                  <p className="text-centers text-gray-800 font-semibold text-lg">
+                    Your wishlist is empty
+                  </p>
+                  <div className="mt-2 text-sm text-gray-500 mb-6">Explore products and add them to your wishlist.</div>
                   <ButtonPrimary
                     label="Explore Products"
                     handleOnClick={() => navigate("/")}
-                  />{" "}
-                </div>{" "}
+                  />
+                </div>
               </div>
             ) : (
               <>
-                <div className="w-full flex flex-col gap-4">
+                <div className="w-full grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6 mt-4">
                   {wishlistItems.map((item) => {
                     const price = Number(item?.price || 0);
                     const discount = Number(item?.discount || 0);
@@ -229,72 +230,77 @@ export default function Wishlist() {
                     return (
                       <div
                         key={item.productCode}
-                        className="flex flex-col sm:flex-row items-stretch border border-quaternary rounded-lg overflow-hidden"
+                        className="flex flex-col bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md transition-shadow overflow-hidden group cursor-pointer"
+                        onClick={() => navigate(`/product/${item.productCode}`)}
                       >
                         {/* Image */}
-                        <div
-                          className="sm:w-[160px] bg-quaternary flex-shrink-0"
-                          onClick={() => {
-                            navigate(`/product/${item.productCode}`);
-                          }}
-                        >
+                        <div className="w-full aspect-square bg-gray-50 p-4 relative">
                           <img
                             src={item.productImages?.url}
                             alt={item.name}
-                            className="w-full h-[200px] sm:h-full object-cover"
+                            className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-300"
                           />
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveFromWishlist(item);
+                            }}
+                            className="absolute top-2 right-2 p-2 bg-white/80 rounded-full hover:bg-red-50 hover:text-red-500 text-gray-400 backdrop-blur-sm transition-colors shadow-sm"
+                            title="Remove from Wishlist"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
 
                         {/* Details */}
-                        <div className="flex flex-col justify-between p-4 gap-3 flex-1">
-                          <div
-                            onClick={() => {
-                              navigate(`/product/${item.productCode}`);
-                            }}
-                          >
-                            <h3 className=" font-semibold text-base sm:text-lg">
-                              {item.name}
-                            </h3>
+                        <div className="flex flex-col p-4 flex-1">
+                          <h3 className="font-semibold text-sm text-gray-900 line-clamp-2 min-h-[40px]">
+                            {item.name}
+                          </h3>
 
-                            <div className="flex items-center gap-2 mt-2">
-                              <span className="text-primary text-lg font-semibold">
-                                ₹{discountedPrice.toFixed(2)}
+                          <div className="mt-2 flex items-center gap-2 flex-wrap min-h-[24px]">
+                            <span className="text-primary font-bold">
+                              ₹{discountedPrice.toFixed(2)}
+                            </span>
+                            {hasDiscount && (
+                              <span className="line-through text-xs text-gray-400">
+                                ₹{price.toFixed(2)}
                               </span>
-                              {hasDiscount && (
-                                <span className="line-through text-sm text-gray-400">
-                                  ₹{price.toFixed(2)}
-                                </span>
-                              )}
-                            </div>
+                            )}
                           </div>
 
                           {/* Actions */}
-                          <div className="flex sm:max-w-[50%] w-full gap-2 mt-2">
+                          <div className="mt-4 pt-3 border-t border-gray-100 flex flex-col gap-2">
                             {cartproductCodes.includes(item.productCode) ? (
-                              <ButtonPrimary
-                                label="Remove from Cart"
-                                handleOnClick={() =>
-                                  handleRemoveFromCart(item.productCode)
-                                }
-                              />
+                              <button
+                                className="w-full py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRemoveFromCart(item.productCode);
+                                }}
+                              >
+                                Remove cart
+                              </button>
                             ) : (
-                              <ButtonPrimary
-                                label="Add to Cart"
-                                handleOnClick={() => handleAddToCart(item)}
-                              />
+                              <button
+                                className="w-full py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-secondary transition-colors"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAddToCart(item);
+                                }}
+                              >
+                                Add to Cart
+                              </button>
                             )}
 
-                            <ButtonPrimary
-                              label="Buy Now"
-                              handleOnClick={() => handleBuyNow(item)}
-                            />
-
                             <button
-                              onClick={() => handleRemoveFromWishlist(item)}
-                              className="p-2 border rounded-md hover:bg-red-50 text-red-500 transition-colors"
-                              title="Remove from Wishlist"
+                              className="w-full py-2 border border-primary text-primary text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleBuyNow(item);
+                              }}
                             >
-                              <Trash2 className="w-5 h-5" />
+                              Buy Now
                             </button>
                           </div>
                         </div>
