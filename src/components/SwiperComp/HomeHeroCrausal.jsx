@@ -49,8 +49,9 @@ export default function HomeHeroCrausal() {
       <Swiper
         modules={[Autoplay]}
         autoplay={{
-          delay: 3000,
+          delay: 5000,
           disableOnInteraction: false,
+          pauseOnMouseEnter: true,
         }}
         loop={true}
         className="mySwiper"

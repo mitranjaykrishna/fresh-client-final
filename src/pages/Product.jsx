@@ -566,6 +566,13 @@ export default function Product() {
             </div>
 
             <div className="flex w-full sm:w-auto flex-1 gap-2 items-center">
+              <div
+                className={`text-red-500 cursor-pointer text-2xl p-2 rounded-full hover:bg-red-50 transition-all ml-1 ${wishlistAnimation ? "wishlist-bounce" : ""
+                  }`}
+                onClick={toggleWishlist}
+              >
+                {isWishlisted ? <FaHeart /> : <FaRegHeart />}
+              </div>
               <button
                 className={`flex-1 ${product?.stockQuantity <= 0
                   ? "bg-gray-300 cursor-not-allowed"
@@ -593,13 +600,7 @@ export default function Product() {
                 Buy Now
               </button>
 
-              <div
-                className={`text-red-500 cursor-pointer text-2xl p-2 rounded-full hover:bg-red-50 transition-all ml-1 ${wishlistAnimation ? "wishlist-bounce" : ""
-                  }`}
-                onClick={toggleWishlist}
-              >
-                {isWishlisted ? <FaHeart /> : <FaRegHeart />}
-              </div>
+
             </div>
           </div>
         </div>

@@ -56,8 +56,8 @@ const ThankYouPage = () => {
       setOrder(data);
       setCurrentStep(statusMap[data.orderStatus] || 1);
 
-      // ✅ Stop polling once delivered
-      if (data.orderStatus === "Delivered" && intervalRef.current) {
+      // ✅ Stop polling once delivered or cancelled
+      if ((data.orderStatus === "Delivered" || data.orderStatus === "Cancelled") && intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
@@ -141,60 +141,79 @@ const ThankYouPage = () => {
   return (
     <div className="min-h-screen w-full bg-gray-50 flex items-center justify-center px-3 py-6">
       <div className="w-full max-w-lg">
-        {/* SUCCESS ANIMATION */}
-        <div className="w-48 h-48 mx-auto mb-4">
-          <Lottie animationData={successAnimation} loop={false} autoplay />
-        </div>
+        {order?.orderStatus === "Cancelled" ? (
+          <div className="text-center mb-6 pt-4">
+            <div className="w-20 h-20 mx-auto mb-4 bg-red-100 text-red-600 flex items-center justify-center rounded-full text-5xl font-bold">
+              ✕
+            </div>
+            <h1 className="text-2xl font-bold text-red-600 mb-1">
+              Order Cancelled
+            </h1>
+            <p className="text-sm text-gray-600 mb-1">
+              Order ID: <b>#{orderId}</b>
+            </p>
+            {order?.paymentStatus && (
+              <p className="text-sm text-orange-600 mt-2">
+                Payment Status: <b>{order.paymentStatus}</b>
+              </p>
+            )}
+          </div>
+        ) : (
+          <div className="text-center mb-6">
+            {/* SUCCESS ANIMATION */}
+            <div className="w-48 h-48 mx-auto mb-2">
+              <Lottie animationData={successAnimation} loop={false} autoplay />
+            </div>
 
-        {/* HEADER */}
-        <h1 className="text-2xl font-bold text-green-600 text-center mb-1">
-          Thank You for Your Order!
-        </h1>
-
-        <p className="text-center text-sm text-gray-600 mb-1">
-          Order ID: <b>#{orderId}</b>
-        </p>
-
-        {order?.paymentStatus && (
-          <p className="text-center text-sm text-orange-600 mb-5">
-            Payment Status: <b>{order.paymentStatus}</b>
-          </p>
+            {/* HEADER */}
+            <h1 className="text-2xl font-bold text-green-600 mb-1">
+              Thank You for Your Order!
+            </h1>
+            <p className="text-sm text-gray-600 mb-1">
+              Order ID: <b>#{orderId}</b>
+            </p>
+            {order?.paymentStatus && (
+              <p className="text-sm text-orange-600 mt-2">
+                Payment Status: <b>{order.paymentStatus}</b>
+              </p>
+            )}
+          </div>
         )}
 
         {/* ORDER STATUS */}
-        <div className="bg-white border rounded-xl p-4 mb-6">
-          <h3 className="font-semibold mb-3">Order Status</h3>
+        {order?.orderStatus !== "Cancelled" && (
+          <div className="bg-white border rounded-xl p-4 mb-6">
+            <h3 className="font-semibold mb-3">Order Status</h3>
 
-          <div className="flex justify-between relative">
-            <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-200 -z-10" />
+            <div className="flex justify-between relative">
+              <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-200 -z-10" />
 
-            {steps.map((label, i) => {
-              const completed = i < currentStep;
+              {steps.map((label, i) => {
+                const completed = i < currentStep;
 
-              return (
-                <div key={label} className="flex flex-col items-center w-full">
-                  <div
-                    className={`w-8 h-8 flex items-center justify-center rounded-full border-2 ${
-                      completed
-                        ? "bg-green-600 border-green-600 text-white"
-                        : "border-gray-300 text-gray-400"
-                    }`}
-                  >
-                    {completed ? <Check size={16} /> : i + 1}
+                return (
+                  <div key={label} className="flex flex-col items-center w-full">
+                    <div
+                      className={`w-8 h-8 flex items-center justify-center rounded-full border-2 ${completed
+                          ? "bg-green-600 border-green-600 text-white"
+                          : "border-gray-300 text-gray-400"
+                        }`}
+                    >
+                      {completed ? <Check size={16} /> : i + 1}
+                    </div>
+
+                    <p
+                      className={`mt-2 text-xs text-center ${completed ? "text-green-600" : "text-gray-500"
+                        }`}
+                    >
+                      {label}
+                    </p>
                   </div>
-
-                  <p
-                    className={`mt-2 text-xs text-center ${
-                      completed ? "text-green-600" : "text-gray-500"
-                    }`}
-                  >
-                    {label}
-                  </p>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* ITEMS */}
         <div className="bg-white border rounded-xl p-4 mb-6">
@@ -277,7 +296,7 @@ const ThankYouPage = () => {
         <p className="text-xs text-center text-gray-500 mt-4">
           Need help?{" "}
           <span
-            onClick={() => navigate(StaticRoutes.contact)}
+            // onClick={() => navigate(StaticRoutes.contact)}
             className="text-green-600 cursor-pointer underline"
           >
             Contact support
