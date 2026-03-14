@@ -345,189 +345,189 @@ export default function Orders() {
           {orders?.map((order, index) => (
             <div
               key={order.publicOrderId || `backup-order-${index}`}
-              className="border rounded-lg p-4 bg-white shadow-sm"
+              className="border border-gray-200 rounded-lg overflow-hidden mb-6 bg-white shadow-sm flex flex-col"
             >
-              {/* Top Summary Bar */}
-              <div className="flex flex-col md:flex-row md:justify-between md:items-center border-b pb-4 text-sm text-gray-600">
-                <div className="flex gap-4 flex-wrap mb-2 md:mb-0">
-                  <span>
-                    <strong>ORDER PLACED</strong>: {order.orderDate}
-                  </span>
-                  <span>
-                    <strong>TOTAL</strong>:{" "}
-                    {formatCurrency(parseFloat(order.afterDiscountAmount) + parseFloat(order.shippingCharge))}
-                  </span>
-                  {order.shippingAddress ? (
-                    <span>
-                      <strong>SHIP TO</strong>: {order.shippingAddress.name || order.shippingAddress.userName || "N/A"}
+              {/* Top Summary Bar - Amazon Style */}
+              <div className="bg-gray-100/80 px-4 md:px-5 py-3 border-b border-gray-200 flex flex-col md:flex-row md:justify-between text-[13px] md:text-sm text-gray-600 gap-3">
+                <div className="flex gap-6 md:gap-10">
+                  <div className="flex flex-col">
+                    <span className="uppercase text-[11px] md:text-xs font-semibold mb-0.5 tracking-wider">Order Placed</span>
+                    <span className="text-gray-900">{order.orderDate}</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="uppercase text-[11px] md:text-xs font-semibold mb-0.5 tracking-wider">Total</span>
+                    <span className="text-gray-900">
+                      {formatCurrency(parseFloat(order.afterDiscountAmount) + parseFloat(order.shippingCharge))}
                     </span>
-                  ) : (
-                    <span>
-                      <strong>SHIP TO</strong>: N/A
+                  </div>
+                  <div className="flex flex-col relative group">
+                    <span className="uppercase text-[11px] md:text-xs font-semibold mb-0.5 tracking-wider">Ship To</span>
+                    <span className="text-primary cursor-pointer hover:underline hover:text-tertiary">
+                      {(order.shippingAddressBean?.userName || order.shippingAddress?.name || order.shippingAddress?.userName || "N/A")} ▾
                     </span>
-                  )}
+
+                    {/* Hover Tooltip Address Details */}
+                    {(order?.shippingAddressBean || order?.shippingAddress) && (
+                      <div className="absolute top-full left-0 mt-2 bg-white border border-gray-200 shadow-xl rounded-md p-4 z-10 w-64 hidden group-hover:block text-sm text-gray-900">
+                        {order?.shippingAddressBean ? (
+                          <div className="flex flex-col gap-1">
+                            <p className="font-bold">{order.shippingAddressBean.userName}</p>
+                            <p>{[order.shippingAddressBean.addressLine1, order.shippingAddressBean.addressLine2].filter(Boolean).join(", ")}</p>
+                            <p>
+                              {order.shippingAddressBean.city}, {order.shippingAddressBean.state} {order.shippingAddressBean.postalCode}
+                            </p>
+                            <p>India</p>
+                            <p className="mt-1 text-gray-500">
+                              Phone: {order.shippingAddressBean.userNumber}
+                            </p>
+                          </div>
+                        ) : (
+                          <p>{typeof order.shippingAddress === "string" ? order.shippingAddress : JSON.stringify(order.shippingAddress)}</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="text-sm text-right">
-                  <span className="block">
-                    <strong>ORDER #</strong> {order?.publicOrderId || "Pending"}
-                  </span>
-                  <div className="mt-1">
-                    {getStatusBadge(order?.orderStatus)}
+
+                <div className="flex flex-col md:items-end justify-center">
+                  <span className="uppercase text-[11px] md:text-xs font-semibold mb-0.5 tracking-wider">Order # {order?.publicOrderId || "Pending"}</span>
+                  <div className="flex items-center gap-2">
+                    <span
+                      onClick={() => trackOrder(order?.publicOrderId)}
+                      className="text-primary cursor-pointer hover:underline hover:text-tertiary"
+                    >
+                      View order details
+                    </span>
+                    <span className="text-gray-300">|</span>
+                    <span
+                      onClick={() => trackOrder(order?.publicOrderId)}
+                      className="text-primary cursor-pointer hover:underline hover:text-tertiary"
+                    >
+                      Invoice
+                    </span>
                   </div>
                 </div>
               </div>
 
-              {/* Order Status */}
-              <div className="mt-4 text-sm">
-                {order?.orderStatus === "Delivered" && (
-                  <>
-                    <p className="text-green-600 font-semibold">
-                      Delivered on {order?.deliveryDate}
-                    </p>
-                    <p className="text-gray-600">
-                      Your item has been delivered
-                    </p>
-                  </>
-                )}
-                {order?.orderStatus === "Cancelled" && (
-                  <p className="text-red-600 font-semibold">
-                    Order was cancelled
-                  </p>
-                )}
-                {["Processing", "Shipped", "Out for Delivery"].includes(
-                  order?.orderStatus
-                ) && (
-                    <p className="text-blue-600 font-semibold">
-                      {order?.orderStatus === "Processing" &&
-                        "Your order is being prepared"}
-                      {order?.orderStatus === "Shipped" &&
-                        "Your order has been shipped"}
-                      {order?.orderStatus === "Out for Delivery" &&
-                        "Your order is out for delivery"}
-                    </p>
-                  )}
-              </div>
+              {/* Order Body */}
+              <div className="p-4 md:p-5 flex flex-col lg:flex-row gap-6">
 
-              {/* Product Info */}
-              {order?.orderItems?.map((item, itemIndex) => (
-                <div
-                  key={item.productCode || item.productId || `orderItem-${itemIndex}`}
-                  className="flex gap-4 py-4 border-b last:border-none"
-                >
-                  <img
-                    src={item?.variantImages?.[0]?.url}
-                    alt="Product"
-                    className="w-[100px] h-[100px] object-contain rounded"
-                  />
-                  <div className="flex-1">
-                    <p className="font-medium text-sm text-primary">
-                      {item?.productName}
-                    </p>
-                    <p className="text-sm text-gray-500 mt-1">
-                      Qty: {item?.quantity}
-                    </p>
-                    <p className="text-sm text-gray-500 mt-1">
-                      Price:{" "}
-                      {item?.totalAmount > item?.afterDiscountAmount && (
-                        <span className="line-through text-gray-400 mr-2">
-                          {formatCurrency(item?.totalAmount / item?.quantity)}
-                        </span>
-                      )}
-                      <span>
-                        {formatCurrency(item?.afterDiscountAmount / item?.quantity)}
-                      </span>{" "}
-                      each
-                    </p>
-                    <p className="text-sm text-gray-500 mt-1">
-                      Weight: {item?.variantWeightValue} {item?.variantWeightUnit}
-                    </p>
+                {/* Left Side: Status & Items */}
+                <div className="flex-1">
+                  {/* Status Heading */}
+                  <div className="mb-4">
                     {order?.orderStatus === "Delivered" && (
-                      <p className="text-xs text-gray-400 mt-1">
-                        Return window closes on{" "}
-                        {/* {order?.deliveryDate
-                          ? new Date(order?.deliveryDate)
-                              .setDate(
-                                new Date(order?.deliveryDate).getDate() + 7
-                              )
-                              ?.toLocaleDateString()
-                          : "N/A"} */}
+                      <h3 className="text-lg md:text-xl font-bold text-gray-900 flex items-center gap-2">
+                        Delivered {order?.deliveryDate}
+                      </h3>
+                    )}
+                    {order?.orderStatus === "Cancelled" && (
+                      <h3 className="text-lg md:text-xl font-bold text-red-600">
+                        Cancelled
+                      </h3>
+                    )}
+                    {["Processing", "Shipped", "Out for Delivery"].includes(order?.orderStatus) && (
+                      <h3 className="text-lg md:text-xl font-bold text-green-700">
+                        {order?.orderStatus === "Out for Delivery" ? "Arriving today" : "Arriving soon"}
+                      </h3>
+                    )}
+                    {order?.orderStatus !== "Cancelled" && order?.orderStatus !== "Delivered" && (
+                      <p className="text-sm text-gray-600 mt-1">
+                        Status: {getStatusBadge(order?.orderStatus)}
                       </p>
                     )}
                   </div>
-                  <div className="text-sm font-semibold flex flex-col items-end">
-                    {item?.totalAmount > item?.afterDiscountAmount && (
-                      <span className="line-through text-gray-400 text-xs font-normal">
-                        {formatCurrency(item?.totalAmount)}
-                      </span>
-                    )}
-                    <span className="text-green-700">
-                      {formatCurrency(item?.afterDiscountAmount)}
-                    </span>
+
+                  {/* Items List */}
+                  <div className="flex flex-col gap-6">
+                    {order?.orderItems?.map((item, itemIndex) => (
+                      <div
+                        key={item.productCode || item.productId || `orderItem-${itemIndex}`}
+                        className="flex gap-4 md:gap-6"
+                      >
+                        <div className="w-20 h-20 md:w-24 md:h-24 flex-shrink-0 bg-gray-50 rounded-md overflow-hidden mix-blend-multiply">
+                          <img
+                            src={item?.variantImages?.[0]?.url}
+                            alt="Product"
+                            className="w-full h-full object-contain p-2"
+                          />
+                        </div>
+                        <div className="flex flex-col flex-1 text-sm">
+                          <p onClick={() => navigate(`/product/${item.productCode}`)} className="font-semibold text-primary hover:text-tertiary hover:underline cursor-pointer line-clamp-2 md:text-base">
+                            {item?.productName}
+                          </p>
+                          <div className="text-gray-500 mt-1 flex flex-col gap-0.5">
+                            <span className="text-gray-800 font-medium">
+                              {item?.quantity} {item?.quantity > 1 ? "items" : "item"}
+                            </span>
+                            <span>Weight: {item?.variantWeightValue} {item?.variantWeightUnit}</span>
+                          </div>
+                          <div className="mt-2 flex items-baseline gap-2">
+                            <span className="text-primary font-bold text-sm md:text-base">
+                              {formatCurrency(item?.afterDiscountAmount)}
+                            </span>
+                            {item?.totalAmount > item?.afterDiscountAmount && (
+                              <span className="text-gray-500 line-through text-xs">
+                                {formatCurrency(item?.totalAmount)}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ))}
 
-              {/* Action Buttons */}
-              <div className="flex flex-wrap gap-3 mt-4">
-                <div
-                  onClick={() => trackOrder(order?.publicOrderId)}
-                  className="bg-[#4296879a] text-black font-medium py-[10px] px-[10px] cursor-pointer flex items-center justify-center rounded-md text-sm hover:bg-yellow-300 max-h"
-                >
-                  Track Order
-                </div>
-                <div
-                  onClick={() => buyNow(order?.orderItems)}
-                  className="bg-[#4296879a] text-black font-medium py-[10px] px-[10px] cursor-pointer flex items-center justify-center rounded-md text-sm hover:bg-yellow-300 max-h"
-                >
-                  Buy Again
-                </div>
-                {order?.orderStatus === "Delivered" && (
-                  <>
-                    <div
-                      onClick={() => navigate(StaticRoutes.terms)}
-                      className="bg-[#ff9933] text-black font-medium px-[10px] py-[10px] cursor-pointer rounded-md text-sm hover:bg-yellow-300 flex items-center justify-center max-h"
-                    >
-                      Get product support
-                    </div>
-                    {/* <div
-                      onClick={() => openReturnModal(order)}
-                      className="bg-blue-500 text-white font-medium px-[10px] py-[10px] cursor-pointer rounded-md text-sm hover:bg-blue-600 flex items-center justify-center max-h"
-                    >
-                      Return
-                    </div> */}
-                    <div
-                      onClick={() => exchangeOrder(order)}
-                      className="bg-purple-500 text-white font-medium px-[10px] py-[10px] cursor-pointer rounded-md text-sm hover:bg-purple-600 flex items-center justify-center max-h"
-                    >
-                      Exchange
-                    </div>
-                  </>
-                )}
+                {/* Right Side: Action Buttons (Theme Colored) */}
+                <div className="w-full lg:w-64 flex-shrink-0 flex flex-col gap-2 mt-4 lg:mt-0">
+                  <button
+                    onClick={() => trackOrder(order?.publicOrderId)}
+                    className="w-full bg-primary hover:bg-primary/90 text-white border border-primary rounded-full py-1.5 md:py-2 px-4 shadow-[0_1px_2px_rgba(0,0,0,0.1)] text-sm font-medium transition-colors"
+                  >
+                    Track package
+                  </button>
 
-                {/* <div
-                  onClick={() => openReturnModal(order)}
-                  className="bg-blue-500 text-white font-medium px-[10px] py-[10px] cursor-pointer rounded-md text-sm hover:bg-blue-600 flex items-center justify-center max-h"
-                >
-                  Return
-                </div> */}
-                {!["Delivered", "Cancelled"].includes(order.orderStatus) && (
-                  <>
+                  <button
+                    onClick={() => buyNow(order?.orderItems)}
+                    className="w-full bg-white hover:bg-gray-50 border border-primary text-primary rounded-full py-1.5 md:py-2 px-4 shadow-[0_1px_2px_rgba(0,0,0,0.05)] text-sm font-medium transition-colors mt-1"
+                  >
+                    Buy it again
+                  </button>
+
+                  {order?.orderStatus === "Delivered" && (
+                    <>
+                      <button
+                        onClick={() => exchangeOrder(order)}
+                        className="w-full bg-white hover:bg-gray-50 border border-primary text-primary rounded-full py-1.5 md:py-2 px-4 shadow-[0_1px_2px_rgba(0,0,0,0.05)] text-sm font-medium transition-colors"
+                      >
+                        Replace or Return items
+                      </button>
+                      <button
+                        onClick={() => navigate(StaticRoutes.terms)}
+                        className="w-full bg-white hover:bg-gray-50 border border-primary text-primary rounded-full py-1.5 md:py-2 px-4 shadow-[0_1px_2px_rgba(0,0,0,0.05)] text-sm font-medium transition-colors"
+                      >
+                        Get product support
+                      </button>
+                    </>
+                  )}
+
+                  {!["Delivered", "Cancelled"].includes(order.orderStatus) && (
                     <button
                       onClick={() => openCancelModal(order)}
-                      className="border border-red-500 text-red-500 font-medium p-[5px] rounded-md text-sm hover:bg-red-50"
+                      className="w-full bg-white hover:bg-red-50 border border-gray-300 rounded-full py-1.5 md:py-2 px-4 shadow-[0_1px_2px_rgba(0,0,0,0.05)] text-sm font-medium text-red-600 hover:border-red-300 transition-colors"
                     >
-                      Cancel Order
+                      Cancel items
                     </button>
-                  </>
-                )}
-                {/* <button className="border px-4 py-1.5 rounded-md text-sm hover:bg-gray-100">
-                  View Invoice
-                </button> */}
-                {order.orderStatus === "Shipped" && (
-                  <button className="border px-4 py-1.5 rounded-md text-sm hover:bg-gray-100">
-                    Track Package
-                  </button>
-                )}
+                  )}
+
+                  {/* <button 
+                    onClick={() => toast.info("Product reviews coming soon!")}
+                    className="w-full bg-white hover:bg-gray-50 border border-primary text-primary rounded-full py-1.5 md:py-2 px-4 shadow-[0_1px_2px_rgba(0,0,0,0.05)] text-sm font-medium transition-colors mt-2"
+                  >
+                    Write a product review
+                  </button> */}
+                </div>
+
               </div>
             </div>
           ))}

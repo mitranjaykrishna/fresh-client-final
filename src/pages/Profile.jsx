@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import ButtonPrimary from "../components/Buttons/ButtonPrimary";
 import { services } from "../utils/services";
 import { StaticApi } from "../utils/StaticApi";
+import AddressDrawer from "../components/AddressDrawer";
 
 export default function Profile() {
   const [user, setUser] = useState({
@@ -22,19 +23,10 @@ export default function Profile() {
   const [showAddAddress, setShowAddAddress] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editIndex, setEditIndex] = useState(null);
-  const [newAddress, setNewAddress] = useState({
-    userName: "",
-    userNumber: "",
-    addressLine1: "",
-    addressLine2: "",
-    city: "",
-    state: "",
-    postalCode: "",
-    country: "",
-    default: false,
-  });
 
   const navigate = useNavigate();
+
+
 
   const getAllAddress = () => {
     services
@@ -46,10 +38,10 @@ export default function Profile() {
       .catch(() => {});
   };
 
-  const handleAddAddress = () => {
-    const payload = { ...newAddress };
+  const handleSaveAddress = (addressData) => {
+    const payload = { ...addressData };
     const apiCall =
-      editIndex !== null
+      isEditing
         ? services.put(
             `${StaticApi.updateAddress}/${payload.addressId}`,
             payload
@@ -60,19 +52,9 @@ export default function Profile() {
       .then((response) => {
         getAllAddress();
 
-        if (newAddress?.default && !isEditing)
+        if (payload?.default && !isEditing)
           handleSetDefaultAddress(response.data?.addressId);
-        setNewAddress({
-          userName: "",
-          userNumber: "",
-          addressLine1: "",
-          addressLine2: "",
-          city: "",
-          state: "",
-          postalCode: "",
-          country: "",
-          default: false,
-        });
+        
         setShowAddAddress(false);
         setIsEditing(false);
         setEditIndex(null);
@@ -126,18 +108,8 @@ export default function Profile() {
           <h3 className="text-lg font-semibold">Saved Addresses</h3>
           <button
             onClick={() => {
-              setNewAddress({
-                userName: "",
-                userNumber: "",
-                addressLine1: "",
-                addressLine2: "",
-                city: "",
-                state: "",
-                postalCode: "",
-                country: "",
-                default: false,
-              });
               setIsEditing(false);
+              setEditIndex(null);
               setShowAddAddress(true);
             }}
             className="bg-primary text-white px-4 py-2 rounded text-sm"
@@ -191,7 +163,6 @@ export default function Profile() {
 
                 <button
                   onClick={() => {
-                    setNewAddress(addr);
                     setEditIndex(index);
                     setIsEditing(true);
                     setShowAddAddress(true);
@@ -248,63 +219,18 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* Address Modal */}
-      {showAddAddress && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg w-full max-w-lg relative">
-            <button
-              onClick={() => setShowAddAddress(false)}
-              className="absolute top-2 right-3 text-xl text-gray-500"
-            >
-              ✕
-            </button>
-            <h3 className="text-lg font-semibold mb-4">
-              {isEditing ? "Edit Address" : "Add Address"}
-            </h3>
-            <div className="grid gap-3 max-h-[70vh] overflow-y-auto pr-2">
-              {[
-                ["Name", "userName"],
-                ["Phone", "userNumber"],
-                ["Address Line 1", "addressLine1"],
-                ["Address Line 2", "addressLine2"],
-                ["City", "city"],
-                ["State", "state"],
-                ["Postal Code", "postalCode"],
-                ["Country", "country"],
-              ].map(([label, key]) => (
-                <InputField
-                  key={key}
-                  label={label}
-                  value={newAddress[key]}
-                  onChange={(e) => {
-                    setNewAddress((prev) => ({
-                      ...prev,
-                      [key]: e.target.value,
-                    }));
-                  }}
-                />
-              ))}
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={newAddress.default}
-                  onChange={() =>
-                    setNewAddress((prev) => ({
-                      ...prev,
-                      default: !prev.default,
-                    }))
-                  }
-                />
-                Set as default address
-              </label>
-              <ButtonPrimary
-                label={isEditing ? "Update Address" : "Save Address"}
-                handleOnClick={handleAddAddress}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Address Drawer Component */}
+      <AddressDrawer 
+        isOpen={showAddAddress}
+        onClose={() => {
+          setShowAddAddress(false);
+          setIsEditing(false);
+          setEditIndex(null);
+        }}
+        isEditing={isEditing}
+        initialAddress={isEditing && editIndex !== null ? addressList[editIndex] : null}
+        onSave={handleSaveAddress}
+      />
 
       {confirmAction.open && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center">
@@ -366,16 +292,3 @@ export default function Profile() {
     </div>
   );
 }
-
-const InputField = ({ label, value, onChange }) => (
-  <div>
-    <label className="block text-sm font-medium mb-1">{label}</label>
-    <input
-      type="text"
-      value={String(value)}
-      onChange={onChange}
-      placeholder={label}
-      className="w-full border rounded px-3 py-2"
-    />
-  </div>
-);
