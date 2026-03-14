@@ -117,7 +117,7 @@ export default function Header() {
           >
             <img src={logo} alt="logo" className="w-10 h-10" />
             <span className="text-lg sm:text-xl md:text-2xl font-bold text-white">
-              Freshooter
+              Freshotter
             </span>
           </div>
 
@@ -268,23 +268,21 @@ export default function Header() {
 
       {/* Mobile Menu Items */}
       {/* Mobile Slide-out Menu Overlay */}
-      <div 
-        className={`fixed inset-0 bg-black/50 z-[60] transition-opacity duration-300 md:hidden ${
-          isMobileMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"
-        }`}
+      <div
+        className={`fixed inset-0 bg-black/50 z-[60] transition-opacity duration-300 md:hidden ${isMobileMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"
+          }`}
         onClick={() => setIsMobileMenuOpen(false)}
       />
 
       {/* Mobile Slide-out Drawer */}
-      <div 
-        className={`fixed inset-y-0 right-0 w-72 bg-white shadow-2xl z-[70] transform transition-transform duration-300 ease-in-out md:hidden flex flex-col ${
-          isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+      <div
+        className={`fixed inset-y-0 right-0 w-72 bg-white shadow-2xl z-[70] transform transition-transform duration-300 ease-in-out md:hidden flex flex-col ${isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         {/* Drawer Header */}
         <div className="flex items-center justify-between p-5 border-b border-gray-100 bg-gray-50">
           <span className="font-bold text-xl text-gray-900">Menu</span>
-          <button 
+          <button
             onClick={() => setIsMobileMenuOpen(false)}
             className="p-2 -mr-2 text-gray-500 hover:text-red-500 transition-colors bg-white rounded-full shadow-sm"
           >
@@ -317,7 +315,7 @@ export default function Header() {
             <AiOutlineHeart className="text-2xl text-gray-400" />
             <span>Wishlist</span>
           </button>
-          
+
           <button
             onClick={() => {
               navigate(StaticRoutes.cart);
@@ -348,7 +346,7 @@ export default function Header() {
                 <AiOutlineUser className="text-2xl text-gray-400" />
                 <span>My Profile</span>
               </button>
-              
+
               <button
                 onClick={() => {
                   navigate(StaticRoutes.orders);
@@ -374,11 +372,10 @@ export default function Header() {
                   setIsMobileMenuOpen(false);
                 }
             }
-            className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm transition-colors ${
-              isLoggedIn 
-                ? "bg-white text-red-500 border border-red-100 hover:bg-red-50 hover:border-red-200" 
+            className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm transition-colors ${isLoggedIn
+                ? "bg-white text-red-500 border border-red-100 hover:bg-red-50 hover:border-red-200"
                 : "bg-primary text-white hover:bg-secondary"
-            }`}
+              }`}
           >
             {isLoggedIn ? "Log Out" : "Log In / Sign Up"}
           </button>

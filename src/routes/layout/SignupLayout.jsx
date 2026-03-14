@@ -18,7 +18,7 @@ export default function SignupLayout() {
           <div className="max-w-md bg-white/10 backdrop-blur-md p-[12px] shadow-none sm:p-8 sm:shadow-xl rounded-xl border border-white/20">
 
             <h2 className="text-3xl font-bold mb-4 text-white">
-              Welcome to Freshooter
+              Welcome to Freshotter
             </h2>
             <p className="text-white/90 text-lg mb-6">
               Discover the finest quality Masala, Dairy, and Oil products. Manage your orders,

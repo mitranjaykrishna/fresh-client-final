@@ -39,7 +39,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 py-8 px-4 sm:px-8 animate-fadeUp">
         {/* Column 1: Logo + Subscribe + App links */}
         <div className=" flex flex-col items-center ">
-          <h2 className="text-4xl font-bold mb-3">Freshooter</h2>
+          <h2 className="text-4xl font-bold mb-3">Freshotter</h2>
           {/* <div className="flex flex-col sm:flex-row mb-4 animate-fadeIn">
             <input
               type="email"
@@ -68,7 +68,7 @@ export default function Footer() {
         <div>
           <h2 className="text-lg font-semibold mb-3">Contact Info</h2>
           <p className="mb-1">📞 Phone: +91 985463215</p>
-          <p>📧 Email: info@freshooter.com</p>
+          <p>📧 Email: info@Freshotter.com</p>
         </div>
 
         {/* Column 3: Store Locations + Payment Logos */}
@@ -103,7 +103,7 @@ export default function Footer() {
       <div className="bg-primary border-t border-gray-300 py-4">
         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center text-center gap-3">
           <p className="text-xs">
-            © {new Date().getFullYear()} <strong>Freshooter</strong>. All Rights
+            © {new Date().getFullYear()} <strong>Freshotter</strong>. All Rights
             Reserved.
           </p>
           <div className="flex space-x-4 text-xl text-black">
