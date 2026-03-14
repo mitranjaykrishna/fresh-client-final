@@ -79,7 +79,7 @@ export default function Home() {
             `${StaticApi.searchProducts}?name=${encodeURIComponent(searchTerm)}`
           )
           .then((response) => {
-            setSearchResults(response?.data?.products || []);
+            setSearchResults(response?.data || []);
           })
           .catch((err) => {
             console.error("Failed to fetch product categories", err);
@@ -96,13 +96,12 @@ export default function Home() {
     getAllProductCategories();
     getAllActivateProducts();
   }, []);
-
   return (
     <div className="flex flex-col gap-6 w-full">
       {/* Hero Carousel */}
       <HomeHeroCrausal />
 
-      <div className="block md:hidden px-4 pt-2 bg-white shadow-sm relative">
+      <div className="block md:hidden px-4 py-2 bg-white shadow-sm relative">
         <input
           type="text"
           placeholder="Search products..."
@@ -122,7 +121,7 @@ export default function Home() {
                 >
                   <div className="flex items-center gap-3">
                     <img
-                      src={product.image || logo}
+                      src={product.productImages?.url || logo}
                       alt={product.name}
                       className="w-10 h-10 object-cover rounded"
                     />
@@ -192,7 +191,7 @@ export default function Home() {
             <span className="text-green-600 font-bold text-xs md:text-sm uppercase tracking-wider mb-2">Weekend Special</span>
             <h3 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mb-2 leading-tight">Authentic Indian<br />Masala & Spices</h3>
             <span className="text-gray-600 text-sm md:text-base mb-4">Up to 30% OFF</span>
-            <span 
+            <span
               onClick={(e) => { e.stopPropagation(); navigate('/explore'); }}
               className="inline-block bg-primary text-white text-xs md:text-sm px-4 py-2 rounded-full font-medium w-max shadow-md hover:bg-secondary transition-colors cursor-pointer"
             >
@@ -211,7 +210,7 @@ export default function Home() {
             <span className="text-orange-600 font-bold text-xs md:text-sm uppercase tracking-wider mb-2">New Arrivals</span>
             <h3 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mb-2 leading-tight">Daily Staples<br />Rice, Flour & Ghee</h3>
             <span className="text-gray-600 text-sm md:text-base mb-4">Stock up your pantry</span>
-            <span 
+            <span
               onClick={(e) => { e.stopPropagation(); navigate('/explore'); }}
               className="inline-block bg-white text-orange-600 border border-orange-200 text-xs md:text-sm px-4 py-2 rounded-full font-medium w-max shadow-sm hover:bg-orange-600 hover:text-white transition-colors cursor-pointer"
             >
