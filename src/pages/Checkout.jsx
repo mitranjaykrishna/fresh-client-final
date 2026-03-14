@@ -197,13 +197,18 @@ const Checkout = () => {
       .catch(() => { });
   };
 
-  const handleDeleteCheckoutItem = (productId) => {
+  const handleDeleteCheckoutItem = (itemToDelete) => {
     const updatedItems = checkoutProducts.filter(
-      (item) => item.productId !== productId
+      (item) =>
+        !(
+          item.productId === itemToDelete.productId &&
+          item.variantWeightValue === itemToDelete.variantWeightValue &&
+          item.variantWeightUnit === itemToDelete.variantWeightUnit
+        )
     );
     setCheckoutProducts(updatedItems);
 
-    if (checkoutProducts.length === 1) {
+    if (updatedItems.length === 0) {
       setWasLastItemDeleted(true);
     }
   };
@@ -349,7 +354,7 @@ const Checkout = () => {
                 );
               }
             }}
-            onRemove={(item) => handleDeleteCheckoutItem(item.productId)}
+            onRemove={(item) => handleDeleteCheckoutItem(item)}
           />
         ))}
 

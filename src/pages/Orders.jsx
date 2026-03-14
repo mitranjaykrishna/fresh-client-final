@@ -17,9 +17,19 @@ export default function Orders() {
   const [loading, setLoading] = useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
+  const [cancelReasonText, setCancelReasonText] = useState("");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isCancelling, setIsCancelling] = useState(false);
   const [cancelError, setCancelError] = useState("");
+
+  const cancelReasons = [
+    "Order placed by mistake",
+    "Found a better price elsewhere",
+    "Delivery takes too long",
+    "Changed my mind",
+    "Ordered wrong item/variant",
+    "Other",
+  ];
 
   const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
   const [returnReason, setReturnReason] = useState("");
@@ -62,21 +72,32 @@ export default function Orders() {
   const closeCancelModal = () => {
     setIsCancelModalOpen(false);
     setCancelReason("");
+    setCancelReasonText("");
     setSelectedOrder(null);
     setCancelError("");
   };
 
   const handleCancelOrder = async () => {
-    if (!cancelReason.trim()) {
-      setCancelError("Please specify a cancellation reason");
+    let finalReason = cancelReason;
+    
+    if (!cancelReason) {
+      setCancelError("Please select a cancellation reason");
       return;
+    }
+
+    if (cancelReason === "Other") {
+      if (!cancelReasonText.trim()) {
+        setCancelError("Please specify a cancellation reason");
+        return;
+      }
+      finalReason = cancelReasonText;
     }
 
     setIsCancelling(true);
     try {
       const payload = {
         orderId: selectedOrder.publicOrderId,
-        cancellationReason: cancelReason,
+        cancellationReason: finalReason,
       };
 
       await services.post(`${StaticApi.cancelOrder}`, payload);
@@ -520,7 +541,7 @@ export default function Orders() {
                     </button>
                   )}
 
-                  {/* <button 
+                  {/* <button
                     onClick={() => toast.info("Product reviews coming soon!")}
                     className="w-full bg-white hover:bg-gray-50 border border-primary text-primary rounded-full py-1.5 md:py-2 px-4 shadow-[0_1px_2px_rgba(0,0,0,0.05)] text-sm font-medium transition-colors mt-2"
                   >
@@ -617,15 +638,35 @@ export default function Orders() {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Cancellation Reason *
               </label>
-              <textarea
+
+              <select
                 value={cancelReason}
                 onChange={(e) => {
                   setCancelReason(e.target.value);
                   if (cancelError) setCancelError("");
                 }}
-                className={`w-full border rounded-md p-2 h-24 ${cancelError ? 'border-red-500 placeholder-red-400' : 'border-gray-300'}`}
-                placeholder={cancelError ? "Required field" : "Please specify why you're cancelling this order..."}
-              />
+                className={`w-full border rounded-md p-2 mb-3 bg-white ${cancelError && !cancelReason ? 'border-red-500' : 'border-gray-300'}`}
+              >
+                <option value="">-- Select a reason --</option>
+                {cancelReasons.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
+
+              {cancelReason === "Other" && (
+                <textarea
+                  value={cancelReasonText}
+                  onChange={(e) => {
+                    setCancelReasonText(e.target.value);
+                    if (cancelError) setCancelError("");
+                  }}
+                  className={`w-full border rounded-md p-2 h-24 transition-all ${cancelError && cancelReason === "Other" ? 'border-red-500 placeholder-red-400' : 'border-gray-300'}`}
+                  placeholder={cancelError ? "Required field" : "Please specify why you're cancelling this order..."}
+                  autoFocus
+                />
+              )}
               {cancelError && (
                 <p className="text-red-500 text-sm mt-1">{cancelError}</p>
               )}

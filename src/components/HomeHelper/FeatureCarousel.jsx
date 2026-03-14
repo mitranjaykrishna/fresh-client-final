@@ -23,8 +23,9 @@ export default function FeatureCarousel({ heading, data }) {
           modules={[Autoplay, Navigation]}
           navigation={true}
           autoplay={{
-            delay: 1000,
+            delay: 4000,
             disableOnInteraction: false,
+            pauseOnMouseEnter: true,
           }}
           loop={true}
           spaceBetween={20}
@@ -39,7 +40,7 @@ export default function FeatureCarousel({ heading, data }) {
               slidesPerView: 3,
             },
           }}
-          className="w-full"
+          className="w-full category-swiper"
         >
           {data?.map((item, index) => {
             const discount =
@@ -79,10 +80,10 @@ export default function FeatureCarousel({ heading, data }) {
                       loading="lazy"
                       className="w-full h-full object-contain mix-blend-multiply transform transition-transform duration-500 group-hover:scale-105"
                     />
-                    
+
                     {/* Quick Add overlay */}
                     <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
-                      <button 
+                      <button
                         className="bg-white text-primary font-semibold py-2 px-6 rounded-full shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:bg-primary hover:text-white"
                         onClick={(e) => {
                           e.stopPropagation();

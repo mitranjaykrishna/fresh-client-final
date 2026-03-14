@@ -86,21 +86,25 @@
 }
 
 @keyframes wishlist-bounce {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
 }
 
 .wishlist-bounce {
-  animation: wishlist-bounce 0.4s ease-in-out;
+    animation: wishlist-bounce 0.4s ease-in-out;
 }
 
-html, body {
-  scrollbar-gutter: stable;
-  @apply bg-gray-50 text-gray-900 antialiased;
+html,
+body {
+    scrollbar-gutter: stable;
+    @apply bg-gray-50 text-gray-900 antialiased;
 }
 
 /* Slide In Right Animation */
@@ -119,5 +123,5 @@ html, body {
 }
 
 body {
-  @apply bg-gray-50 text-gray-900 antialiased;
+    @apply bg-gray-50 text-gray-900 antialiased;
 }

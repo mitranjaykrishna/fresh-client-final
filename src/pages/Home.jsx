@@ -8,7 +8,8 @@ import FeatureCarousel from "../components/HomeHelper/FeatureCarousel";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/pagination";
-import { Autoplay } from "swiper/modules";
+import "swiper/css/navigation";
+import { Autoplay, Navigation } from "swiper/modules";
 import { useNavigate } from "react-router";
 
 export default function Home() {
@@ -142,46 +143,50 @@ export default function Home() {
       </div>
 
       {/* Category Carousel */}
-      <Swiper
-        slidesPerView={2}
-        spaceBetween={20}
-        breakpoints={{
-          480: { slidesPerView: 3 },
-          640: { slidesPerView: 4 },
-          768: { slidesPerView: 5 },
-          1024: { slidesPerView: 6 },
-        }}
-        autoplay={{
-          delay: 3000,
-          disableOnInteraction: false,
-        }}
-        loop={true}
-        modules={[Autoplay]}
-        className="w-full px-2 sm:px-4 md:px-10 xl:px-16 2xl:px-[220px]"
-      >
-        {productCat.map((item) => (
-          <SwiperSlide key={item.id} className="pb-4">
-            <div
-              onClick={() => navigate(`/category/${item.name}`)}
-              className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden cursor-pointer group shadow-sm hover:shadow-xl transition-all duration-300"
-            >
-              <img
-                src={item.image}
-                alt={item.name}
-                className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-4">
-                <span className="text-white font-bold text-sm md:text-base lg:text-lg drop-shadow-md translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                  {item.name}
-                </span>
-                <span className="text-primary text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300 mt-1 uppercase tracking-wider">
-                  Explore Now →
-                </span>
+      <div className="w-full px-4 sm:px-6 md:px-10 xl:px-16 2xl:px-[50px]">
+        <Swiper
+          slidesPerView={2}
+          spaceBetween={20}
+          breakpoints={{
+            480: { slidesPerView: 3 },
+            640: { slidesPerView: 4 },
+            768: { slidesPerView: 5 },
+            1024: { slidesPerView: 6 },
+          }}
+          autoplay={{
+            delay: 4500,
+            disableOnInteraction: false,
+            pauseOnMouseEnter: true,
+          }}
+          loop={true}
+          navigation={true}
+          modules={[Autoplay, Navigation]}
+          className="w-full category-swiper py-2 px-10"
+        >
+          {productCat.map((item) => (
+            <SwiperSlide key={item.id} className="pb-4">
+              <div
+                onClick={() => navigate(`/category/${item.name}`)}
+                className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden cursor-pointer group shadow-sm hover:shadow-xl transition-all duration-300"
+              >
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-4">
+                  <span className="text-white font-bold text-sm md:text-base lg:text-lg drop-shadow-md translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                    {item.name}
+                  </span>
+                  <span className="text-primary text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300 mt-1 uppercase tracking-wider">
+                    Explore Now →
+                  </span>
+                </div>
               </div>
-            </div>
-          </SwiperSlide>
-        ))}
-      </Swiper>
+            </SwiperSlide>
+          ))}
+        </Swiper>
+      </div>
 
       {/* Promotional Banners Section */}
       <div className="w-full px-4 sm:px-6 md:px-10 xl:px-16 2xl:px-[220px] grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 my-2">
